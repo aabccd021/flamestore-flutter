@@ -1,0 +1,6 @@
+{
+  "dart.analysisExcludedFolders": [
+    "temp",
+  ],
+  "discord.enabled": true
+}

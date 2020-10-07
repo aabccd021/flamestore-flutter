@@ -18,9 +18,9 @@
         "--input-path",
         "schema_example/example-schema.json",
         "--output-path",
-        "temp/flamestore.g.dart",
+        "./temp/flamestore.g.dart",
         "--dev",
-      ]
+      ],
     },
     {
       "name": "flamestore_example",

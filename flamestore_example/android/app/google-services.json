@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "864429447704",
+    "firebase_url": "https://flamestore.firebaseio.com",
+    "project_id": "flamestore",
+    "storage_bucket": "flamestore.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864429447704:android:ae994414e701aad50f416d",
+        "android_client_info": {
+          "package_name": "com.example.flamestore_example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "864429447704-j0j9tfimcp2rfqoud7156rsvf09865ru.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANUhENXOC_ki5PUid0Su9LLYduowK9hD0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "864429447704-j0j9tfimcp2rfqoud7156rsvf09865ru.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

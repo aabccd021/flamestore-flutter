@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
+import 'generate/collections.dart';
 import 'generate/schema.dart';
 
 const inputPath = 'input-path';
@@ -19,6 +20,7 @@ main(List<String> args) async {
   final schema = Schema.fromJson(json.decode(jsonString));
   final generated = generate(schema);
   await File(argResult[ouputPath]).writeAsString(generated);
+  await Process.run('flutter', ['format', argResult[ouputPath]]);
 }
 
 String generate(Schema schema) {
@@ -32,5 +34,9 @@ import 'package:rxdart/rxdart.dart';
   } else {
     content += "import 'package:flamestore/flamestore';";
   }
+  for (final collectionEntry in schema.collections.entries) {
+    content += generateCollection(collectionEntry.key, collectionEntry.value);
+  }
   return content;
 }
+
