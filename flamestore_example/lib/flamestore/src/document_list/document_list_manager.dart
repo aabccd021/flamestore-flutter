@@ -28,10 +28,9 @@ class _DocumentListManager {
       );
     }
     return snapshots
-        .map((snapshot) => docList.document
-            .documentFromData(snapshot.data())
-            .mergeWith(
-                docList.document.documentFromReference(snapshot.reference)))
+        .map((snapshot) =>
+            (docList.document.createDocumentFromData(snapshot.data()))
+              ..reference = snapshot.reference)
         .cast<T>()
         .toList();
   }
@@ -72,7 +71,8 @@ class _DocumentListManager {
   void _createListIfAbsent(DocumentList docList) {
     if (!_map.containsKey(docList) || _map[docList] == null) {
       final emptyDocList = _DocumentListInternalState();
-      _map[docList] = BehaviorSubject<_DocumentListInternalState>.seeded(emptyDocList);
+      _map[docList] =
+          BehaviorSubject<_DocumentListInternalState>.seeded(emptyDocList);
     }
   }
 

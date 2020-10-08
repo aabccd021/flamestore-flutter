@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,7 +8,6 @@ import 'package:flamestore_example/flamestore/flamestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:uuid/uuid.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,11 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final firebaseCurrentUser = FirebaseAuth.instance.currentUser;
     assert(user.uid == firebaseCurrentUser.uid);
     final key = UserDocument(uid: firebaseCurrentUser.uid);
+    final randomUserName = 'user' + Random().nextInt(100000).toString();
     final userDoc = await widget._flamestore.getDoc(key, fromCache: false) ??
-        await widget._flamestore.setDoc(
-          UserDocument(userName: Uuid().v4().substring(0, 10)),
-          key: key,
-        );
+        await widget._flamestore.setDoc(key.copyWith(userName: randomUserName));
     setState(() => currentUser = userDoc);
   }
 }
@@ -143,7 +142,8 @@ class _TweetState extends State<Tweet> {
           Text('tweetText: ${widget.tweet?.tweetText}'),
           Text('likes: ${widget.tweet?.likesSum}'),
           Text('creationTime: ${widget.tweet?.creationTime}'),
-          LikeButton(user: widget.user, tweet: widget.tweet),
+          if (widget.user != null)
+            LikeButton(user: widget.user, tweet: widget.tweet),
         ],
       ),
     );
@@ -170,26 +170,29 @@ class LikeButton extends StatefulWidget {
 class _LikeButtonState extends State<LikeButton> {
   @override
   Widget build(BuildContext context) {
-    final key = LikeDocument(
-        user: widget.user.reference, tweet: widget.tweet.reference);
+    final keyDocument = LikeDocument(
+      user: widget.user?.reference,
+      tweet: widget.tweet?.reference,
+    );
     return DocumentBuilder<LikeDocument>(
-      where: key,
+      keyDocument: keyDocument,
       allowNull: true,
       builder: (context, document) {
         final likeValue = document?.likeValue ?? 0;
+        final color = likeValue != 0 ? Colors.red : null;
         return Row(
           children: [
             IconButton(
+              color: color,
               icon: Icon(Icons.favorite),
               onPressed: () {
                 final newLikeValue = (likeValue + 1) % 5;
                 widget._flamestore.setDoc(
-                  LikeDocument(likeValue: newLikeValue),
-                  key: key,
+                  keyDocument.copyWith(likeValue: newLikeValue),
                 );
               },
             ),
-            Text(likeValue.toString())
+            Text(likeValue.toString(), style: TextStyle(color: color))
           ],
         );
       },
@@ -204,6 +207,7 @@ class TweetForm extends StatefulWidget {
     Flamestore flamestore,
   })  : _flamestore = flamestore ?? Flamestore.instance,
         super(key: key);
+
   final UserDocument user;
   final Flamestore _flamestore;
 

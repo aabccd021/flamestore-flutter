@@ -1,7 +1,6 @@
 part of '../../flamestore.dart';
 
 class Flamestore {
-  // Singleton
   Flamestore._privateConstructor();
   static final Flamestore _instance = Flamestore._privateConstructor();
   static Flamestore get instance => _instance;
@@ -14,10 +13,11 @@ class Flamestore {
     return _flamestore.getList<T, V>(documentList);
   }
 
-  ValueStream<DocumentListState<T>> _streamOfList<T extends Document>(
-    DocumentList documentList,
+  ValueStream<DocumentListState<T>>
+      _streamOfList<T extends Document, V extends DocumentList<T>>(
+    V documentList,
   ) {
-    return _flamestore.streamOfList<T>(documentList);
+    return _flamestore.streamOfList(documentList);
   }
 
   Future<void> refreshList(DocumentList documentList) {
@@ -25,25 +25,18 @@ class Flamestore {
   }
 
   Future<T> setDoc<T extends Document>(
-    T value, {
-    T key,
+    T document, {
     List<DocumentList<T>> appendOnLists,
   }) async {
-    return _flamestore.setDoc(value, key: key, appendOnLists: appendOnLists);
+    return _flamestore.setDoc(document, appendOnLists: appendOnLists);
   }
 
   Future<T> getDoc<T extends Document>(T key, {bool fromCache = true}) {
     return _flamestore.getDoc(key, fromCache: fromCache);
   }
 
-  ValueStream<T> _docStreamWhere<T extends Document>(T key) {
-    return _flamestore.docStreamWhere<T>(key);
-  }
-
-  ValueStream<T> _docStreamWhereRef<T extends Document>(
-    DocumentReference reference,
-  ) {
-    return _flamestore.docStreamWhereRef<T>(reference);
+  ValueStream<T> _docStreamWherePath<T extends Document>(String path) {
+    return _flamestore.docStreamWherePath<T>(path);
   }
 }
 
@@ -63,20 +56,25 @@ class _Flamestore {
     return _docManager.addFromList<T>(docs);
   }
 
-  ValueStream<DocumentListState<T>> streamOfList<T extends Document>(
+  ValueStream<DocumentListState<T>>
+      streamOfList<T extends Document, V extends DocumentList<T>>(
     DocumentList documentList,
   ) {
     return _listManager
         .streamOf(documentList)
-        .map(
-          (state) => DocumentListState(
-            state.hasMore,
-            Rx.combineLatestList(
-                    state.refs.map((ref) => docStreamWhereRef<T>(ref)))
-                .shareValue(),
-          ),
-        )
+        .map((state) => _internalStateToExternalState<T>(state))
         .shareValue();
+  }
+
+  DocumentListState<T> _internalStateToExternalState<T extends Document>(
+    _DocumentListInternalState internalState,
+  ) {
+    final refsStream =
+        internalState.refs.map((ref) => docStreamWherePath<T>(ref.path));
+    return DocumentListState(
+      internalState.hasMore,
+      Rx.combineLatestList(refsStream).shareValue(),
+    );
   }
 
   Future<void> refreshList(DocumentList documentList) {
@@ -84,11 +82,10 @@ class _Flamestore {
   }
 
   Future<T> setDoc<T extends Document>(
-    T value, {
-    T key,
+    T document, {
     List<DocumentList<T>> appendOnLists,
   }) async {
-    final doc = await _docManager.set(value, key: key);
+    final doc = await _docManager.set(document);
     if (appendOnLists != null) {
       _listManager.addRefToLists(doc.reference, appendOnLists);
     }
@@ -96,16 +93,10 @@ class _Flamestore {
   }
 
   Future<T> getDoc<T extends Document>(T key, {bool fromCache = true}) {
-    return _docManager.get(key: key, fromCache: fromCache);
+    return _docManager.get(key, fromCache);
   }
 
-  ValueStream<T> docStreamWhere<T extends Document>(T key) {
-    return _docManager.streamWhere<T>(key);
-  }
-
-  ValueStream<T> docStreamWhereRef<T extends Document>(
-    DocumentReference reference,
-  ) {
-    return _docManager.streamWhereRef<T>(reference);
+  ValueStream<T> docStreamWherePath<T extends Document>(String path) {
+    return _docManager.streamWherePath<T>(path);
   }
 }

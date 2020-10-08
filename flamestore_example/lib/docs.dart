@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'flamestore/flamestore.dart';
 
 class TweetDocument extends Document {
@@ -8,23 +9,19 @@ class TweetDocument extends Document {
     this.tweetText,
     this.likesSum,
     this.creationTime,
-    DocumentReference reference,
-  }) : super(reference);
+  });
 
-  final DocumentReference user;
-  final String userName;
-  final String tweetText;
-  final int likesSum;
-  final DateTime creationTime;
+  DocumentReference user;
+  String userName;
+  String tweetText;
+  int likesSum;
+  DateTime creationTime;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
 
   @override
-  List<Object> get props => [user, userName, tweetText, likesSum, creationTime];
-
-  @override
-  TweetDocument documentFromData(Map<String, dynamic> data) {
+  TweetDocument createDocumentFromData(Map<String, dynamic> data) {
     return TweetDocument(
       user: data['user'],
       userName: data['userName'],
@@ -38,7 +35,6 @@ class TweetDocument extends Document {
   TweetDocument mergeWith(Document document) {
     TweetDocument tweetDocument = document;
     return TweetDocument(
-      reference: tweetDocument.reference ?? reference,
       user: tweetDocument.user ?? user,
       userName: tweetDocument.userName ?? userName,
       tweetText: tweetDocument.tweetText ?? tweetText,
@@ -48,8 +44,11 @@ class TweetDocument extends Document {
   }
 
   @override
-  TweetDocument get defaultDocument {
+  TweetDocument withDefaultValue() {
     return TweetDocument(
+      user: user,
+      userName: userName,
+      tweetText: tweetText,
       likesSum: 0,
       creationTime: DateTime.now(),
     );
@@ -75,38 +74,30 @@ class TweetDocument extends Document {
   }
 
   @override
-  TweetDocument documentFromReference(DocumentReference reference) {
-    return TweetDocument(reference: reference);
-  }
+  bool get shouldBeDeleted => false;
 
   @override
-  bool get shouldBeDeleted => false;
+  List<String> get keys => [];
 }
-
-enum TweetAttribute { user, userName, tweetText, likesSum }
 
 class UserDocument extends Document {
   UserDocument({
-    this.uid,
+    @required this.uid,
     this.userName,
     this.bio,
     this.tweetsCount,
-    DocumentReference reference,
-  }) : super(reference);
+  });
 
-  final String uid;
-  final String userName;
-  final String bio;
-  final int tweetsCount;
+  String uid;
+  String userName;
+  String bio;
+  int tweetsCount;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
 
   @override
-  List<Object> get props => [uid, userName, bio, tweetsCount];
-
-  @override
-  UserDocument documentFromData(Map<String, dynamic> data) {
+  UserDocument createDocumentFromData(Map<String, dynamic> data) {
     return UserDocument(
       uid: data['uid'],
       userName: data['userName'],
@@ -116,15 +107,9 @@ class UserDocument extends Document {
   }
 
   @override
-  UserDocument documentFromReference(DocumentReference reference) {
-    return UserDocument(reference: reference);
-  }
-
-  @override
   UserDocument mergeWith(Document document) {
     UserDocument userDocument = document;
     return UserDocument(
-      reference: userDocument.reference ?? reference,
       uid: userDocument.uid ?? uid,
       userName: userDocument.userName ?? userName,
       bio: userDocument.bio ?? bio,
@@ -133,8 +118,13 @@ class UserDocument extends Document {
   }
 
   @override
-  UserDocument get defaultDocument {
-    return UserDocument(tweetsCount: 0);
+  UserDocument withDefaultValue() {
+    return UserDocument(
+      uid: uid,
+      userName: userName,
+      bio: bio,
+      tweetsCount: 0,
+    );
   }
 
   @override
@@ -156,38 +146,55 @@ class UserDocument extends Document {
 
   @override
   bool get shouldBeDeleted => false;
+
+  @override
+  List<String> get keys => [uid];
+
+  UserDocument copyWith({
+    String uid,
+    String userName,
+    String bio,
+    int tweetsCount,
+  }) {
+    return UserDocument(
+      uid: uid ?? this.uid,
+      userName: userName ?? this.userName,
+      bio: bio ?? this.bio,
+      tweetsCount: tweetsCount ?? this.tweetsCount,
+    );
+  }
 }
 
 class LikeDocument extends Document {
   LikeDocument({
     this.likeValue,
-    this.user,
-    this.tweet,
-    DocumentReference reference,
-  }) : super(reference);
+    @required this.user,
+    @required this.tweet,
+  });
 
-  final int likeValue;
-  final DocumentReference user;
-  final DocumentReference tweet;
+  int likeValue;
+  DocumentReference user;
+  DocumentReference tweet;
 
   @override
-  LikeDocument get defaultDocument => LikeDocument();
+  LikeDocument withDefaultValue() {
+    return LikeDocument(
+      likeValue: likeValue,
+      user: user,
+      tweet: tweet,
+    );
+  }
 
   @override
   Map<String, dynamic> get defaultMap => {};
 
   @override
-  LikeDocument documentFromData(Map<String, dynamic> data) {
+  LikeDocument createDocumentFromData(Map<String, dynamic> data) {
     return LikeDocument(
       likeValue: data['likeValue'],
       user: data['user'],
       tweet: data['tweet'],
     );
-  }
-
-  @override
-  LikeDocument documentFromReference(DocumentReference reference) {
-    return LikeDocument(reference: reference);
   }
 
   @override
@@ -204,9 +211,6 @@ class LikeDocument extends Document {
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'likes');
 
   @override
-  List<Object> get props => [likeValue, user, tweet];
-
-  @override
   bool get shouldBeDeleted => likeValue == 0;
 
   @override
@@ -216,5 +220,20 @@ class LikeDocument extends Document {
       'user': user,
       'tweet': tweet,
     };
+  }
+
+  @override
+  List<String> get keys => [user?.id, tweet?.id];
+
+  LikeDocument copyWith({
+    int likeValue,
+    DocumentReference user,
+    DocumentReference tweet,
+  }) {
+    return LikeDocument(
+      likeValue: likeValue ?? this.likeValue,
+      user: user ?? this.user,
+      tweet: tweet ?? this.tweet,
+    );
   }
 }

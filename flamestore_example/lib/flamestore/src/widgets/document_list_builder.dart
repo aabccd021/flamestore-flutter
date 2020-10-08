@@ -30,7 +30,7 @@ class _ListViewBuilderState<T extends Document, V extends DocumentList<T>>
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentListState<T>>(
-      stream: widget._flamestore._streamOfList<T>(widget.documentList),
+      stream: widget._flamestore._streamOfList(widget.documentList),
       builder: (context, listSnapshot) {
         if (listSnapshot.hasData) {
           return StreamBuilder<List<T>>(
