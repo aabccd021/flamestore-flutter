@@ -21,7 +21,7 @@ class _DocumentManager {
     if (document.reference == null) {
       return _create(document);
     }
-    // _state.update<T>(document);
+    _state.update<T>(document);
     final oldDocument = await get(document, true);
     if (oldDocument == null) {
       return _create(document);
