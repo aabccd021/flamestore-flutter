@@ -6,6 +6,7 @@ import 'package:rxdart/rxdart.dart';
 part 'src/flamestore/flamestore.dart';
 part 'src/flamestore/_flamestore.dart';
 part 'src/document/document.dart';
+part 'src/document/edan.dart';
 part 'src/document/_document_firestore_adapter.dart';
 part 'src/document/_documents_state.dart';
 part 'src/document/_document_manager.dart';
