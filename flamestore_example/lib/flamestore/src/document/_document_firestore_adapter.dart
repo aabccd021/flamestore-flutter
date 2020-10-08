@@ -6,19 +6,15 @@ class _DocumentFirestoreAdapter {
 
   final FirebaseFirestore _firestore;
 
-  Future<void> delete<T extends Document>(T document) {
-    return document.reference.delete();
-  }
-
-  Future<T> get<T extends Document>(T keyDocument) async {
-    final reference = keyDocument.reference;
-    final snapshot = await reference?.get();
+  Future<T> get<T extends Document>(T document) async {
+    final reference = document.reference;
+    final snapshot = await reference.get();
     final data = snapshot?.data();
     print('GET $reference $data');
     if (data == null) {
       return null;
     }
-    return keyDocument.createDocumentFromData(data);
+    return document.fromSnapshot(snapshot);
   }
 
   Future<DocumentReference> create<T extends Document>(T document) async {
@@ -32,10 +28,16 @@ class _DocumentFirestoreAdapter {
     return _firestore.collection(collectionName).add(data);
   }
 
-  Future<void> update<T extends Document>(T oldDocument, T updatedData) {
-    final reference = oldDocument.reference;
+  Future<void> update<T extends Document>(
+      DocumentReference reference, T updatedData) {
     final data = updatedData.toMap()..removeNull();
     print('UPDATE $reference $data');
     return reference.set(data, SetOptions(merge: true));
+  }
+
+  Future<void> delete<T extends Document>(T document) {
+    final reference = document.reference;
+    print('UPDATE $reference');
+    return reference.delete();
   }
 }

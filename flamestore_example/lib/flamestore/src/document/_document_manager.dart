@@ -1,0 +1,82 @@
+part of '../../flamestore.dart';
+
+class _DocumentManager {
+  _DocumentManager({
+    _DocumentsState state,
+    _DocumentFirestoreAdapter adapter,
+    Map<Document, DocumentReference> fetched,
+  })  : _db = adapter ?? _DocumentFirestoreAdapter(),
+        _state = state ?? _DocumentsState(),
+        _fetchedDocumentPaths = fetched ?? <String>{};
+
+  final _DocumentFirestoreAdapter _db;
+  final _DocumentsState _state;
+  final Set<String> _fetchedDocumentPaths;
+
+  ValueStream<T> streamWherePath<T extends Document>(String path) {
+    return _state.streamWherePath<T>(path);
+  }
+
+  Future<T> set<T extends Document>(T document) async {
+    if (document.reference == null) {
+      return _create(document);
+    }
+    // _state.update<T>(document);
+    final oldDocument = await get(document, true);
+    if (oldDocument == null) {
+      return _create(document);
+    }
+    if (document.shouldBeDeleted) {
+      await _delete(oldDocument);
+      return null;
+    }
+    return _update(oldDocument, document);
+  }
+
+  Future<T> _create<T extends Document>(T doc) async {
+    final newDocument = doc.withDefaultValue();
+    if (newDocument.reference != null) {
+      _state.update<T>(newDocument);
+    }
+    final reference = await _db.create(newDocument);
+    newDocument.reference = reference;
+    _state.update<T>(newDocument);
+    return newDocument;
+  }
+
+  Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
+    final mergedDocument = oldDocument.mergeWith(newDocument);
+    _state.update<T>(mergedDocument);
+    await _db.update(oldDocument.reference, newDocument);
+    return mergedDocument;
+  }
+
+  Future<void> _delete<T extends Document>(T oldDocument) async {
+    await _state.delete(oldDocument);
+    await _db.delete(oldDocument);
+  }
+
+  Future<T> get<T extends Document>(T keyDocument, bool fromCache) async {
+    final path = keyDocument.reference.path;
+    final onMemoryDocument = await streamWherePath<T>(path).first;
+    if (fromCache && _fetchedDocumentPaths.contains(path)) {
+      return onMemoryDocument;
+    }
+    final createdDocument = await _db.get(keyDocument);
+    _fetchedDocumentPaths.add(path);
+    if (createdDocument == null) {
+      return null;
+    }
+    final updatedDocument = onMemoryDocument != null
+        ? onMemoryDocument.mergeWith(createdDocument)
+        : createdDocument;
+    await _state.update<T>(updatedDocument);
+    return updatedDocument;
+  }
+
+  Future<void> addFromList<T extends Document>(List<T> documents) async {
+    for (final document in documents) {
+      await _state.update<T>(document);
+    }
+  }
+}

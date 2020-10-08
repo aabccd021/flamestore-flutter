@@ -2,17 +2,20 @@ part of '../../flamestore.dart';
 
 class DocumentListBuilder<T extends Document, V extends DocumentList<T>>
     extends StatefulWidget {
-  DocumentListBuilder({
+  DocumentListBuilder(
+    this.list, {
     @required this.builder,
-    @required this.documentList,
     Flamestore flamestore,
     Key key,
   })  : _flamestore = flamestore ?? Flamestore.instance,
         super(key: key);
 
-  final Widget Function(BuildContext context, List<T> document, bool hasMore)
-      builder;
-  final V documentList;
+  final Widget Function(
+    BuildContext context,
+    List<T> document,
+    bool hasMore,
+  ) builder;
+  final V list;
   final Flamestore _flamestore;
 
   @override
@@ -23,14 +26,14 @@ class _ListViewBuilderState<T extends Document, V extends DocumentList<T>>
     extends State<DocumentListBuilder<T, V>> {
   @override
   void initState() {
-    widget._flamestore.getList<T, V>(widget.documentList);
+    widget._flamestore.getList<T, V>(widget.list);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentListState<T>>(
-      stream: widget._flamestore._streamOfList(widget.documentList),
+      stream: widget._flamestore._streamOfList(widget.list),
       builder: (context, listSnapshot) {
         if (listSnapshot.hasData) {
           return StreamBuilder<List<T>>(

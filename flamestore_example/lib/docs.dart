@@ -21,14 +21,14 @@ class TweetDocument extends Document {
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
 
   @override
-  TweetDocument createDocumentFromData(Map<String, dynamic> data) {
+  TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
     return TweetDocument(
-      user: data['user'],
-      userName: data['userName'],
-      tweetText: data['tweetText'],
-      likesSum: data['likesSum'],
-      creationTime: data['creationTime']?.toDate(),
-    );
+      user: snapshot.data()['user'],
+      userName: snapshot.data()['userName'],
+      tweetText: snapshot.data()['tweetText'],
+      likesSum: snapshot.data()['likesSum'],
+      creationTime: snapshot.data()['creationTime']?.toDate(),
+    )..reference = snapshot.reference;
   }
 
   @override
@@ -97,13 +97,13 @@ class UserDocument extends Document {
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
 
   @override
-  UserDocument createDocumentFromData(Map<String, dynamic> data) {
+  UserDocument fromSnapshot(DocumentSnapshot snapshot) {
     return UserDocument(
-      uid: data['uid'],
-      userName: data['userName'],
-      bio: data['bio'],
-      tweetsCount: data['tweetsCount'],
-    );
+      uid: snapshot.data()['uid'],
+      userName: snapshot.data()['userName'],
+      bio: snapshot.data()['bio'],
+      tweetsCount: snapshot.data()['tweetsCount'],
+    )..reference = snapshot.reference;
   }
 
   @override
@@ -189,12 +189,12 @@ class LikeDocument extends Document {
   Map<String, dynamic> get defaultMap => {};
 
   @override
-  LikeDocument createDocumentFromData(Map<String, dynamic> data) {
+  LikeDocument fromSnapshot(DocumentSnapshot snapshot) {
     return LikeDocument(
-      likeValue: data['likeValue'],
-      user: data['user'],
-      tweet: data['tweet'],
-    );
+      likeValue: snapshot.data()['likeValue'],
+      user: snapshot.data()['user'],
+      tweet: snapshot.data()['tweet'],
+    )..reference = snapshot.reference;
   }
 
   @override

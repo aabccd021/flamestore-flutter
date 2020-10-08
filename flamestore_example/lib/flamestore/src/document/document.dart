@@ -10,7 +10,7 @@ abstract class Document {
   DocumentMetadata get metadata;
 
   @protected
-  Document createDocumentFromData(Map<String, dynamic> data);
+  Document fromSnapshot(DocumentSnapshot snapshot);
 
   @protected
   Document withDefaultValue();
@@ -30,12 +30,12 @@ abstract class Document {
   @protected
   List<String> get keys;
 
+  @protected
+  set reference(DocumentReference reference) => _reference = reference;
+
   DocumentReference get reference => keys.isEmpty
       ? _reference
       : _firestore.collection(metadata.collectionName).doc(keys.join('_'));
-
-  @protected
-  set reference(DocumentReference reference) => _reference = reference;
 }
 
 class DocumentMetadata {

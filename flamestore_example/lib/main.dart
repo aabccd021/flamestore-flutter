@@ -28,10 +28,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flamestore Demo',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
       home: MyHomePage(),
     );
   }
@@ -39,11 +35,8 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({
-    Key key,
     Flamestore flamestore,
-  })  : _flamestore = flamestore ?? Flamestore.instance,
-        super(key: key);
-
+  }) : _flamestore = flamestore ?? Flamestore.instance;
   final Flamestore _flamestore;
 
   @override
@@ -51,11 +44,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  @override
+  void initState() {
+    flamestore = widget._flamestore;
+    super.initState();
+  }
+
+  Flamestore flamestore;
   UserDocument currentUser;
 
   @override
   Widget build(BuildContext context) {
-    final documentList = TweetList();
     return Scaffold(
       appBar: AppBar(
         title: Text('Flamestore Demo'),
@@ -66,22 +65,21 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: DocumentListBuilder<TweetDocument, TweetList>(
-        documentList: documentList,
+        TweetList(),
         builder: (_, docs, hasMore) {
           return ListView(
             children: [
               if (currentUser != null) TweetForm(user: currentUser),
               RaisedButton(
-                onPressed: () => widget._flamestore.refreshList(documentList),
+                onPressed: () => flamestore.refreshList(TweetList()),
                 child: Text('Refresh List'),
               ),
               ...docs
                   .map((doc) => Tweet(tweet: doc, user: currentUser))
                   .toList(),
               RaisedButton(
-                onPressed: hasMore
-                    ? () => widget._flamestore.getList(documentList)
-                    : null,
+                onPressed:
+                    hasMore ? () => flamestore.getList(TweetList()) : null,
                 child: Text(hasMore ? 'Load More' : 'No More Tweets'),
               )
             ],
@@ -113,8 +111,8 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(user.uid == firebaseCurrentUser.uid);
     final key = UserDocument(uid: firebaseCurrentUser.uid);
     final randomUserName = 'user' + Random().nextInt(100000).toString();
-    final userDoc = await widget._flamestore.getDoc(key, fromCache: false) ??
-        await widget._flamestore.setDoc(key.copyWith(userName: randomUserName));
+    final userDoc = await flamestore.getDoc(key, fromCache: false) ??
+        await flamestore.setDoc(key.copyWith(userName: randomUserName));
     setState(() => currentUser = userDoc);
   }
 }
@@ -123,8 +121,7 @@ class Tweet extends StatefulWidget {
   const Tweet({
     @required this.tweet,
     @required this.user,
-    Key key,
-  }) : super(key: key);
+  });
   final TweetDocument tweet;
   final UserDocument user;
 
@@ -150,32 +147,22 @@ class _TweetState extends State<Tweet> {
   }
 }
 
-class LikeButton extends StatefulWidget {
+class LikeButton extends StatelessWidget {
   LikeButton({
     @required this.user,
     @required this.tweet,
-    Key key,
     Flamestore flamestore,
-  })  : _flamestore = flamestore ?? Flamestore.instance,
-        super(key: key);
+  }) : _flamestore = flamestore ?? Flamestore.instance;
 
   final UserDocument user;
   final TweetDocument tweet;
   final Flamestore _flamestore;
 
   @override
-  _LikeButtonState createState() => _LikeButtonState();
-}
-
-class _LikeButtonState extends State<LikeButton> {
-  @override
   Widget build(BuildContext context) {
-    final keyDocument = LikeDocument(
-      user: widget.user?.reference,
-      tweet: widget.tweet?.reference,
-    );
+    final key = LikeDocument(user: user?.reference, tweet: tweet?.reference);
     return DocumentBuilder<LikeDocument>(
-      keyDocument: keyDocument,
+      key,
       allowNull: true,
       builder: (context, document) {
         final likeValue = document?.likeValue ?? 0;
@@ -186,13 +173,12 @@ class _LikeButtonState extends State<LikeButton> {
               color: color,
               icon: Icon(Icons.favorite),
               onPressed: () {
-                final newLikeValue = (likeValue + 1) % 5;
-                widget._flamestore.setDoc(
-                  keyDocument.copyWith(likeValue: newLikeValue),
+                _flamestore.setDoc(
+                  key.copyWith(likeValue: (likeValue + 1) % 5),
                 );
               },
             ),
-            Text(likeValue.toString(), style: TextStyle(color: color))
+            Text('$likeValue', style: TextStyle(color: color))
           ],
         );
       },
@@ -203,10 +189,8 @@ class _LikeButtonState extends State<LikeButton> {
 class TweetForm extends StatefulWidget {
   TweetForm({
     @required this.user,
-    Key key,
     Flamestore flamestore,
-  })  : _flamestore = flamestore ?? Flamestore.instance,
-        super(key: key);
+  }) : _flamestore = flamestore ?? Flamestore.instance;
 
   final UserDocument user;
   final Flamestore _flamestore;
@@ -216,6 +200,13 @@ class TweetForm extends StatefulWidget {
 }
 
 class _TweetFormState extends State<TweetForm> {
+  @override
+  void initState() {
+    flamestore = widget._flamestore;
+    super.initState();
+  }
+
+  Flamestore flamestore;
   String tweet = '';
   @override
   Widget build(BuildContext context) {
