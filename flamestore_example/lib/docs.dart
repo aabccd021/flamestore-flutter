@@ -2,20 +2,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'flamestore/flamestore.dart';
 
-class TweetDocument extends Document {
-  TweetDocument({
+class _TweetDocumentData {
+  final DocumentReference user;
+  final String userName;
+  final String tweetText;
+  final int likesSum;
+  final DateTime creationTime;
+
+  _TweetDocumentData(
     this.user,
     this.userName,
     this.tweetText,
     this.likesSum,
     this.creationTime,
-  });
+  );
+}
 
-  DocumentReference user;
-  String userName;
-  String tweetText;
-  int likesSum;
-  DateTime creationTime;
+class TweetDocument extends Document {
+  TweetDocument({
+    DocumentReference user,
+    String userName,
+    String tweetText,
+    int likesSum,
+    DateTime creationTime,
+  }) : data = _TweetDocumentData(
+          user,
+          userName,
+          tweetText,
+          likesSum,
+          creationTime,
+        );
+  final _TweetDocumentData data;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
@@ -34,9 +51,9 @@ class TweetDocument extends Document {
   @override
   TweetDocument withDefaultValue() {
     return TweetDocument(
-      user: user,
-      userName: userName,
-      tweetText: tweetText,
+      user: data.user,
+      userName: data.userName,
+      tweetText: data.tweetText,
       likesSum: 0,
       creationTime: DateTime.now(),
     );
@@ -53,11 +70,11 @@ class TweetDocument extends Document {
   @override
   Map<String, dynamic> toDataMap() {
     return {
-      'user': user,
-      'userName': userName,
-      'tweetText': tweetText,
-      'likesSum': likesSum,
-      'creationTime': creationTime,
+      'user': data.user,
+      'userName': data.userName,
+      'tweetText': data.tweetText,
+      'likesSum': data.likesSum,
+      'creationTime': data.creationTime,
     };
   }
 
@@ -68,19 +85,34 @@ class TweetDocument extends Document {
   List<String> get keys => [];
 }
 
-class UserDocument extends Document {
-  UserDocument({
-    @required this.uid,
+class _UserDocumentData {
+  final String uid;
+  final String userName;
+  final String bio;
+  final int tweetsCount;
+
+  _UserDocumentData({
+    this.uid,
     this.userName,
     this.bio,
     this.tweetsCount,
   });
+}
 
-  String uid;
-  String userName;
-  String bio;
-  int tweetsCount;
+class UserDocument extends Document {
+  UserDocument({
+    @required String uid,
+    String userName,
+    String bio,
+    int tweetsCount,
+  }) : data = _UserDocumentData(
+          uid: uid,
+          userName: userName,
+          bio: bio,
+          tweetsCount: tweetsCount,
+        );
 
+  final _UserDocumentData data;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
@@ -98,9 +130,9 @@ class UserDocument extends Document {
   @override
   UserDocument withDefaultValue() {
     return UserDocument(
-      uid: uid,
-      userName: userName,
-      bio: bio,
+      uid: data.uid,
+      userName: data.userName,
+      bio: data.bio,
       tweetsCount: 0,
     );
   }
@@ -115,10 +147,10 @@ class UserDocument extends Document {
   @override
   Map<String, dynamic> toDataMap() {
     return {
-      'uid': uid,
-      'userName': userName,
-      'bio': bio,
-      'tweetsCount': tweetsCount,
+      'uid': data.uid,
+      'userName': data.userName,
+      'bio': data.bio,
+      'tweetsCount': data.tweetsCount,
     };
   }
 
@@ -126,7 +158,7 @@ class UserDocument extends Document {
   bool get shouldBeDeleted => false;
 
   @override
-  List<String> get keys => [uid];
+  List<String> get keys => [data.uid];
 
   UserDocument copyWith({
     String uid,
@@ -135,31 +167,39 @@ class UserDocument extends Document {
     int tweetsCount,
   }) {
     return UserDocument(
-      uid: uid ?? this.uid,
-      userName: userName ?? this.userName,
-      bio: bio ?? this.bio,
-      tweetsCount: tweetsCount ?? this.tweetsCount,
+      uid: uid ?? this.data.uid,
+      userName: userName ?? this.data.userName,
+      bio: bio ?? this.data.bio,
+      tweetsCount: tweetsCount ?? this.data.tweetsCount,
     );
   }
 }
 
+class _LikeDocumentData {
+
+  final int likeValue;
+  final DocumentReference user;
+  final DocumentReference tweet;
+
+  _LikeDocumentData(this.likeValue, this.user, this.tweet);
+
+}
+
 class LikeDocument extends Document {
   LikeDocument({
-    this.likeValue,
-    @required this.user,
-    @required this.tweet,
-  });
+    int likeValue,
+    @required DocumentReference user,
+    @required DocumentReference tweet,
+  }):data = _LikeDocumentData(likeValue, user, tweet);
 
-  int likeValue;
-  DocumentReference user;
-  DocumentReference tweet;
+  final _LikeDocumentData data;
 
   @override
   LikeDocument withDefaultValue() {
     return LikeDocument(
-      likeValue: likeValue,
-      user: user,
-      tweet: tweet,
+      likeValue: data.likeValue,
+      user: data.user,
+      tweet: data.tweet,
     );
   }
 
@@ -179,19 +219,19 @@ class LikeDocument extends Document {
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'likes');
 
   @override
-  bool get shouldBeDeleted => likeValue == 0;
+  bool get shouldBeDeleted => data.likeValue == 0;
 
   @override
   Map<String, dynamic> toDataMap() {
     return {
-      'likeValue': likeValue,
-      'user': user,
-      'tweet': tweet,
+      'likeValue': data.likeValue,
+      'user': data.user,
+      'tweet': data.tweet,
     };
   }
 
   @override
-  List<String> get keys => [user?.id, tweet?.id];
+  List<String> get keys => [data?.user?.id, data?.tweet?.id];
 
   LikeDocument copyWith({
     int likeValue,
@@ -199,9 +239,9 @@ class LikeDocument extends Document {
     DocumentReference tweet,
   }) {
     return LikeDocument(
-      likeValue: likeValue ?? this.likeValue,
-      user: user ?? this.user,
-      tweet: tweet ?? this.tweet,
+      likeValue: likeValue ?? this.data.likeValue,
+      user: user ?? this.data.user,
+      tweet: tweet ?? this.data.tweet,
     );
   }
 }

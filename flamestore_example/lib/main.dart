@@ -132,13 +132,14 @@ class Tweet extends StatefulWidget {
 class _TweetState extends State<Tweet> {
   @override
   Widget build(BuildContext context) {
+    final data = widget.tweet?.data;
     return Card(
       child: Column(
         children: [
-          Text('userName: ${widget.tweet?.userName}'),
-          Text('tweetText: ${widget.tweet?.tweetText}'),
-          Text('likes: ${widget.tweet?.likesSum}'),
-          Text('creationTime: ${widget.tweet?.creationTime}'),
+          Text('userName: ${data?.userName}'),
+          Text('tweetText: ${data?.tweetText}'),
+          Text('likes: ${data?.likesSum}'),
+          Text('creationTime: ${data?.creationTime}'),
           if (widget.user != null)
             LikeButton(user: widget.user, tweet: widget.tweet),
         ],
@@ -165,7 +166,7 @@ class LikeButton extends StatelessWidget {
       key,
       allowNull: true,
       builder: (context, document) {
-        final likeValue = document?.likeValue ?? 0;
+        final likeValue = document?.data?.likeValue ?? 0;
         final color = likeValue != 0 ? Colors.red : null;
         return Row(
           children: [
@@ -233,7 +234,7 @@ class _TweetFormState extends State<TweetForm> {
     widget._flamestore.createDocument(
       TweetDocument(
         user: widget.user.reference,
-        userName: widget.user.userName,
+        userName: widget.user.data.userName,
         tweetText: tweet,
       ),
       appendOnLists: [TweetList()],
