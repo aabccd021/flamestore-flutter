@@ -18,23 +18,21 @@ class _DocumentManager {
   }
 
   Future<T> set<T extends Document>(T document) async {
-    if (document.reference == null) {
-      return _create(document);
-    }
     _state.update<T>(document);
     final oldDocument = await get(document, true);
     if (oldDocument == null) {
-      return _create(document);
+      return create(document);
     }
     if (document.shouldBeDeleted) {
       await _delete(oldDocument);
       return null;
     }
+    print(oldDocument.toMap());
     return _update(oldDocument, document);
   }
 
-  Future<T> _create<T extends Document>(T doc) async {
-    final newDocument = doc.withDefaultValue();
+  Future<T> create<T extends Document>(T document) async {
+    final newDocument = document.withDefaultValue();
     if (newDocument.reference != null) {
       _state.update<T>(newDocument);
     }
@@ -45,7 +43,8 @@ class _DocumentManager {
   }
 
   Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
-    final mergedDocument = oldDocument.mergeWith(newDocument);
+    final data = {...oldDocument.toMap(), ...newDocument.toMap()};
+    final mergedDocument = oldDocument.fromMap(data);
     _state.update<T>(mergedDocument);
     await _db.update(oldDocument.reference, newDocument);
     return mergedDocument;
@@ -68,7 +67,8 @@ class _DocumentManager {
       return null;
     }
     final updatedDocument = onMemoryDocument != null
-        ? onMemoryDocument.mergeWith(createdDocument)
+        ? onMemoryDocument
+            .fromMap({...onMemoryDocument.toMap(), ...createdDocument.toMap()})
         : createdDocument;
     await _state.update<T>(updatedDocument);
     return updatedDocument;

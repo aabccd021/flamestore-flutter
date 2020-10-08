@@ -111,8 +111,8 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(user.uid == firebaseCurrentUser.uid);
     final key = UserDocument(uid: firebaseCurrentUser.uid);
     final randomUserName = 'user' + Random().nextInt(100000).toString();
-    final userDoc = await flamestore.getDoc(key, fromCache: false) ??
-        await flamestore.setDoc(key.copyWith(userName: randomUserName));
+    final userDoc = await flamestore.getDocument(key, fromCache: false) ??
+        await flamestore.createDocument(key.copyWith(userName: randomUserName));
     setState(() => currentUser = userDoc);
   }
 }
@@ -152,11 +152,11 @@ class LikeButton extends StatelessWidget {
     @required this.user,
     @required this.tweet,
     Flamestore flamestore,
-  }) : _flamestore = flamestore ?? Flamestore.instance;
+  }) : flamestore = flamestore ?? Flamestore.instance;
 
   final UserDocument user;
   final TweetDocument tweet;
-  final Flamestore _flamestore;
+  final Flamestore flamestore;
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +173,7 @@ class LikeButton extends StatelessWidget {
               color: color,
               icon: Icon(Icons.favorite),
               onPressed: () {
-                _flamestore.setDoc(
+                flamestore.setDocument(
                   key.copyWith(likeValue: (likeValue + 1) % 5),
                 );
               },
@@ -230,7 +230,7 @@ class _TweetFormState extends State<TweetForm> {
   }
 
   void onSubmitPressed() {
-    widget._flamestore.setDoc(
+    widget._flamestore.createDocument(
       TweetDocument(
         user: widget.user.reference,
         userName: widget.user.userName,

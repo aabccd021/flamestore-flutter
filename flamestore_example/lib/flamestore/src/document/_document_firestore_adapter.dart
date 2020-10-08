@@ -14,12 +14,13 @@ class _DocumentFirestoreAdapter {
     if (data == null) {
       return null;
     }
-    return document.fromSnapshot(snapshot);
+    return document._fromSnapshot(snapshot);
   }
 
   Future<DocumentReference> create<T extends Document>(T document) async {
     final reference = document.reference;
-    final data = {...document.toMap(), ...document.defaultMap}..removeNull();
+    final data = {...document.toDataMap(), ...document.defaultMap}
+      ..removeNull();
     print('CREATE $reference $data');
     if (reference != null) {
       return reference..set(data, SetOptions(merge: true));
@@ -30,7 +31,7 @@ class _DocumentFirestoreAdapter {
 
   Future<void> update<T extends Document>(
       DocumentReference reference, T updatedData) {
-    final data = updatedData.toMap()..removeNull();
+    final data = updatedData.toDataMap()..removeNull();
     print('UPDATE $reference $data');
     return reference.set(data, SetOptions(merge: true));
   }

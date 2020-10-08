@@ -12,7 +12,7 @@ part 'src/document/_document_manager.dart';
 part 'src/document_list/document_list.dart';
 part 'src/document_list/_document_list_firestore_adapter.dart';
 part 'src/document_list/_document_list_manager.dart';
-part 'src/document_list/_document_list_internal_state.dart';
+part 'src/document_list/_document_list_state.dart';
 part 'src/document_list/document_list_state.dart';
 part 'src/misc/extension.dart';
 part 'src/widgets/document_list_builder.dart';

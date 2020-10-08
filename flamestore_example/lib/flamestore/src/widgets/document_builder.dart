@@ -23,7 +23,7 @@ class _DocumentBuilderState<T extends Document>
     extends State<DocumentBuilder<T>> {
   @override
   void initState() {
-    widget._flamestore.getDoc(widget.document);
+    widget._flamestore.getDocument(widget.document);
     super.initState();
   }
 

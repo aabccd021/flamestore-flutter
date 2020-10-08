@@ -10,7 +10,9 @@ abstract class Document {
   DocumentMetadata get metadata;
 
   @protected
-  Document fromSnapshot(DocumentSnapshot snapshot);
+  Document _fromSnapshot(DocumentSnapshot snapshot) {
+    return fromMap(snapshot.data())..reference = snapshot.reference;
+  }
 
   @protected
   Document withDefaultValue();
@@ -19,10 +21,12 @@ abstract class Document {
   Map<String, dynamic> get defaultMap;
 
   @protected
-  Document mergeWith(Document document);
+  Document fromMap(Map<String, dynamic> data);
+
+  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 
   @protected
-  Map<String, dynamic> toMap();
+  Map<String, dynamic> toDataMap();
 
   @protected
   bool get shouldBeDeleted;
@@ -31,7 +35,7 @@ abstract class Document {
   List<String> get keys;
 
   @protected
-  set reference(DocumentReference reference) => _reference = reference;
+  set reference(DocumentReference reference) => _reference ??= reference;
 
   DocumentReference get reference => keys.isEmpty
       ? _reference

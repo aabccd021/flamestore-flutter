@@ -24,15 +24,23 @@ class Flamestore {
     return _flamestore.refreshList(list);
   }
 
-  Future<T> setDoc<T extends Document>(
+  Future<T> setDocument<T extends Document>(
     T document, {
     List<DocumentList<T>> appendOnLists,
   }) async {
-    return _flamestore.setDoc(document, appendOnLists: appendOnLists);
+    return _flamestore.setDocument(document, appendOnLists: appendOnLists);
   }
 
-  Future<T> getDoc<T extends Document>(T document, {bool fromCache = true}) {
-    return _flamestore.getDoc(document, fromCache: fromCache);
+  Future<T> getDocument<T extends Document>(T document,
+      {bool fromCache = true}) {
+    return _flamestore.getDocument(document, fromCache: fromCache);
+  }
+
+  Future<T> createDocument<T extends Document>(
+    T document, {
+    List<DocumentList<T>> appendOnLists,
+  }) {
+    return _flamestore.createDocument(document, appendOnLists: appendOnLists);
   }
 
   ValueStream<T> _docStreamWherePath<T extends Document>(String path) {

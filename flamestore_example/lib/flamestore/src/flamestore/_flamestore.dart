@@ -42,7 +42,7 @@ class _Flamestore {
     return _listManager.refresh(list);
   }
 
-  Future<T> setDoc<T extends Document>(
+  Future<T> setDocument<T extends Document>(
     T document, {
     List<DocumentList<T>> appendOnLists,
   }) async {
@@ -53,8 +53,20 @@ class _Flamestore {
     return newDocument;
   }
 
-  Future<T> getDoc<T extends Document>(T document, {bool fromCache = true}) {
+  Future<T> getDocument<T extends Document>(T document,
+      {bool fromCache = true}) {
     return _documentManager.get(document, fromCache);
+  }
+
+  Future<T> createDocument<T extends Document>(
+    T document, {
+    List<DocumentList<T>> appendOnLists,
+  }) async {
+    final newDocument = await _documentManager.create(document);
+    if (appendOnLists != null) {
+      _listManager.addReference(newDocument.reference, appendOnLists);
+    }
+    return newDocument;
   }
 
   ValueStream<T> docStreamWherePath<T extends Document>(String path) {

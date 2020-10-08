@@ -21,25 +21,13 @@ class TweetDocument extends Document {
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
 
   @override
-  TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
+  TweetDocument fromMap(Map<String, dynamic> data) {
     return TweetDocument(
-      user: snapshot.data()['user'],
-      userName: snapshot.data()['userName'],
-      tweetText: snapshot.data()['tweetText'],
-      likesSum: snapshot.data()['likesSum'],
-      creationTime: snapshot.data()['creationTime']?.toDate(),
-    )..reference = snapshot.reference;
-  }
-
-  @override
-  TweetDocument mergeWith(Document document) {
-    TweetDocument tweetDocument = document;
-    return TweetDocument(
-      user: tweetDocument.user ?? user,
-      userName: tweetDocument.userName ?? userName,
-      tweetText: tweetDocument.tweetText ?? tweetText,
-      likesSum: tweetDocument.likesSum ?? likesSum,
-      creationTime: tweetDocument.creationTime ?? creationTime,
+      user: data['user'],
+      userName: data['userName'],
+      tweetText: data['tweetText'],
+      likesSum: data['likesSum'],
+      creationTime: data['creationTime']?.toDate(),
     );
   }
 
@@ -63,7 +51,7 @@ class TweetDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toDataMap() {
     return {
       'user': user,
       'userName': userName,
@@ -93,27 +81,17 @@ class UserDocument extends Document {
   String bio;
   int tweetsCount;
 
+
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
 
   @override
-  UserDocument fromSnapshot(DocumentSnapshot snapshot) {
+  UserDocument fromMap(Map<String, dynamic> data) {
     return UserDocument(
-      uid: snapshot.data()['uid'],
-      userName: snapshot.data()['userName'],
-      bio: snapshot.data()['bio'],
-      tweetsCount: snapshot.data()['tweetsCount'],
-    )..reference = snapshot.reference;
-  }
-
-  @override
-  UserDocument mergeWith(Document document) {
-    UserDocument userDocument = document;
-    return UserDocument(
-      uid: userDocument.uid ?? uid,
-      userName: userDocument.userName ?? userName,
-      bio: userDocument.bio ?? bio,
-      tweetsCount: userDocument.tweetsCount ?? tweetsCount,
+      uid: data['uid'],
+      userName: data['userName'],
+      bio: data['bio'],
+      tweetsCount: data['tweetsCount'],
     );
   }
 
@@ -135,7 +113,7 @@ class UserDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toDataMap() {
     return {
       'uid': uid,
       'userName': userName,
@@ -189,21 +167,11 @@ class LikeDocument extends Document {
   Map<String, dynamic> get defaultMap => {};
 
   @override
-  LikeDocument fromSnapshot(DocumentSnapshot snapshot) {
+  LikeDocument fromMap(Map<String, dynamic> data) {
     return LikeDocument(
-      likeValue: snapshot.data()['likeValue'],
-      user: snapshot.data()['user'],
-      tweet: snapshot.data()['tweet'],
-    )..reference = snapshot.reference;
-  }
-
-  @override
-  LikeDocument mergeWith(Document document) {
-    LikeDocument likeDocument = document;
-    return LikeDocument(
-      likeValue: likeDocument.likeValue ?? likeValue,
-      user: likeDocument.user ?? user,
-      tweet: likeDocument.tweet ?? tweet,
+      likeValue: data['likeValue'],
+      user: data['user'],
+      tweet: data['tweet'],
     );
   }
 
@@ -214,7 +182,7 @@ class LikeDocument extends Document {
   bool get shouldBeDeleted => likeValue == 0;
 
   @override
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toDataMap() {
     return {
       'likeValue': likeValue,
       'user': user,
