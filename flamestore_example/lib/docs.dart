@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'flamestore/flamestore.dart';
 
-class TweetDocumentData extends Edan {
+class _TweetDocumentData extends Edan {
   final DocumentReference user;
   final String userName;
   final String tweetText;
   final int likesSum;
   final DateTime creationTime;
 
-  TweetDocumentData(
+  _TweetDocumentData(
     this.user,
     this.userName,
     this.tweetText,
@@ -25,14 +25,14 @@ class TweetDocument extends Document {
     String tweetText,
     int likesSum,
     DateTime creationTime,
-  }) : data = TweetDocumentData(
+  }) : data = _TweetDocumentData(
           user,
           userName,
           tweetText,
           likesSum,
           creationTime,
         );
-  final TweetDocumentData data;
+  final _TweetDocumentData data;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
@@ -85,13 +85,13 @@ class TweetDocument extends Document {
   List<String> get keys => [];
 }
 
-class UserDocumentData extends Edan {
+class _UserDocumentData extends Edan {
   final String uid;
   final String userName;
   final String bio;
   final int tweetsCount;
 
-  UserDocumentData({
+  _UserDocumentData({
     this.uid,
     this.userName,
     this.bio,
@@ -105,14 +105,14 @@ class UserDocument extends Document {
     String userName,
     String bio,
     int tweetsCount,
-  }) : data = UserDocumentData(
+  }) : data = _UserDocumentData(
           uid: uid,
           userName: userName,
           bio: bio,
           tweetsCount: tweetsCount,
         );
 
-  final UserDocumentData data;
+  final _UserDocumentData data;
 
   @override
   DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
@@ -175,12 +175,12 @@ class UserDocument extends Document {
   }
 }
 
-class LikeDocumentData extends Edan {
+class _LikeDocumentData extends Edan {
   final int likeValue;
   final DocumentReference user;
   final DocumentReference tweet;
 
-  LikeDocumentData(this.likeValue, this.user, this.tweet);
+  _LikeDocumentData(this.likeValue, this.user, this.tweet);
 }
 
 class LikeDocument extends Document {
@@ -188,9 +188,9 @@ class LikeDocument extends Document {
     int likeValue,
     @required DocumentReference user,
     @required DocumentReference tweet,
-  }) : data = LikeDocumentData(likeValue, user, tweet);
+  }) : data = _LikeDocumentData(likeValue, user, tweet);
 
-  final LikeDocumentData data;
+  final _LikeDocumentData data;
 
   @override
   LikeDocument withDefaultValue() {
