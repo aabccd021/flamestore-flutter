@@ -16,10 +16,9 @@
       "program": "bin/generate.dart",
       "args": [
         "--input-path",
-        "schema_example/example-schema.json",
+        "schema_example/sample.json",
         "--output-path",
-        "./temp/flamestore.g.dart",
-        "--dev",
+        "example/lib/docs.dart",
       ],
     },
     {

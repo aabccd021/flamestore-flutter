@@ -57,8 +57,7 @@
               "collection": "users",
               "isOwnerDocRef": true
             }
-          },
-          "isKey": true
+          }
         },
         "userName": {
           "syncFrom": {
@@ -102,7 +101,8 @@
           "type": {
             "int": {
               "max": 5,
-              "min": 0
+              "min": 0,
+              "deleteDocWhen": 0
             }
           }
         },
@@ -116,12 +116,12 @@
           }
         },
         "tweet": {
+          "isKey": true,
           "type": {
             "path": {
               "collection": "tweets"
             }
-          },
-          "isKey": true
+          }
         }
       }
     }

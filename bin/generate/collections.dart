@@ -10,7 +10,7 @@ String generateCollection(String rawColName, Collection collection) {
   final colName = SINGULAR.convert(rawColName).inCaps;
   final fieldStatic =
       collection.fields.keys.map(generateFieldStaticKey).join('\n');
-  return """class ${colName}Doc extends StateData{
+  return """class ${colName}Document extends Document{
     ${colName}Doc.fromSnapshot(DocumentSnapshot snapshot){
       overwritefromSnapshot(snapshot);
     }
@@ -39,5 +39,4 @@ enum TweetFields {
 
 class UserDoc extends Doc<UserFields> {}
 
-query<T extends Doc<K>, K>(T doc, {K orderBy, bool descending}) {
-}
+query<T extends Doc<K>, K>(T doc, {K orderBy, bool descending}) {}

@@ -12,10 +12,8 @@ bool dev;
 main(List<String> args) async {
   final parser = ArgParser()
     ..addOption(inputPath, abbr: 'i')
-    ..addOption(ouputPath, abbr: 'o')
-    ..addFlag('dev');
+    ..addOption(ouputPath, abbr: 'o');
   final argResult = parser.parse(args);
-  dev = argResult['dev'];
   final jsonString = await File(argResult[inputPath]).readAsString();
   final schema = Schema.fromJson(json.decode(jsonString));
   final generated = generate(schema);
@@ -24,19 +22,13 @@ main(List<String> args) async {
 }
 
 String generate(Schema schema) {
-  String content = """import 'dart:async';
+  String content = """
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:flamestore/flamestore.dart';
 """;
-  if (dev) {
-    content += "import '../lib/flamestore.dart';";
-  } else {
-    content += "import 'package:flamestore/flamestore';";
-  }
   for (final collectionEntry in schema.collections.entries) {
     content += generateCollection(collectionEntry.key, collectionEntry.value);
   }
   return content;
 }
-

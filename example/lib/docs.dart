@@ -2,95 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 
-class _TweetDocumentData extends Edan {
-  final DocumentReference user;
-  final String userName;
-  final String tweetText;
-  final int likesSum;
-  final DateTime creationTime;
-
-  _TweetDocumentData(
-    this.user,
-    this.userName,
-    this.tweetText,
-    this.likesSum,
-    this.creationTime,
-  );
-}
-
-class TweetDocument extends Document {
-  TweetDocument({
-    DocumentReference user,
-    String userName,
-    String tweetText,
-    int likesSum,
-    DateTime creationTime,
-  }) : data = _TweetDocumentData(
-          user,
-          userName,
-          tweetText,
-          likesSum,
-          creationTime,
-        );
-  final _TweetDocumentData data;
-
-  @override
-  DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
-
-  @override
-  TweetDocument fromMap(Map<String, dynamic> data) {
-    return TweetDocument(
-      user: data['user'],
-      userName: data['userName'],
-      tweetText: data['tweetText'],
-      likesSum: data['likesSum'],
-      creationTime: data['creationTime']?.toDate(),
-    );
-  }
-
-  @override
-  TweetDocument withDefaultValue() {
-    return TweetDocument(
-      user: data.user,
-      userName: data.userName,
-      tweetText: data.tweetText,
-      likesSum: 0,
-      creationTime: DateTime.now(),
-    );
-  }
-
-  @override
-  Map<String, dynamic> get defaultFirestoreMap {
-    return {
-      'likesSum': 0,
-      'creationTime': FieldValue.serverTimestamp(),
-    };
-  }
-
-  @override
-  Map<String, dynamic> toDataMap() {
-    return {
-      'user': data.user,
-      'userName': data.userName,
-      'tweetText': data.tweetText,
-      'likesSum': data.likesSum,
-      'creationTime': data.creationTime,
-    };
-  }
-
-  @override
-  bool get shouldBeDeleted => false;
-
-  @override
-  List<String> get keys => [];
-
-  @override
-  TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
-    return super.fromSnapshot(snapshot) as TweetDocument;
-  }
-}
-
-class _UserDocumentData extends Edan {
+class _UserDocumentData {
   final String uid;
   final String userName;
   final String bio;
@@ -180,7 +92,95 @@ class UserDocument extends Document {
   }
 }
 
-class _LikeDocumentData extends Edan {
+class _TweetDocumentData {
+  final DocumentReference user;
+  final String userName;
+  final String tweetText;
+  final int likesSum;
+  final DateTime creationTime;
+
+  _TweetDocumentData(
+    this.user,
+    this.userName,
+    this.tweetText,
+    this.likesSum,
+    this.creationTime,
+  );
+}
+
+class TweetDocument extends Document {
+  TweetDocument({
+    DocumentReference user,
+    String userName,
+    String tweetText,
+    int likesSum,
+    DateTime creationTime,
+  }) : data = _TweetDocumentData(
+          user,
+          userName,
+          tweetText,
+          likesSum,
+          creationTime,
+        );
+  final _TweetDocumentData data;
+
+  @override
+  DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
+
+  @override
+  TweetDocument fromMap(Map<String, dynamic> data) {
+    return TweetDocument(
+      user: data['user'],
+      userName: data['userName'],
+      tweetText: data['tweetText'],
+      likesSum: data['likesSum'],
+      creationTime: data['creationTime']?.toDate(),
+    );
+  }
+
+  @override
+  TweetDocument withDefaultValue() {
+    return TweetDocument(
+      user: data.user,
+      userName: data.userName,
+      tweetText: data.tweetText,
+      likesSum: 0,
+      creationTime: DateTime.now(),
+    );
+  }
+
+  @override
+  Map<String, dynamic> get defaultFirestoreMap {
+    return {
+      'likesSum': 0,
+      'creationTime': FieldValue.serverTimestamp(),
+    };
+  }
+
+  @override
+  Map<String, dynamic> toDataMap() {
+    return {
+      'user': data.user,
+      'userName': data.userName,
+      'tweetText': data.tweetText,
+      'likesSum': data.likesSum,
+      'creationTime': data.creationTime,
+    };
+  }
+
+  @override
+  bool get shouldBeDeleted => false;
+
+  @override
+  List<String> get keys => [];
+
+  @override
+  TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
+    return super.fromSnapshot(snapshot) as TweetDocument;
+  }
+}
+
+class _LikeDocumentData {
   final int likeValue;
   final DocumentReference user;
   final DocumentReference tweet;
