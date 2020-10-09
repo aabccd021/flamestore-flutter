@@ -14,12 +14,12 @@ class _DocumentFirestoreAdapter {
     if (data == null) {
       return null;
     }
-    return document._fromSnapshot(snapshot);
+    return document.fromSnapshot(snapshot);
   }
 
   Future<DocumentReference> create<T extends Document>(T document) async {
     final reference = document.reference;
-    final data = {...document.toDataMap(), ...document.defaultMap}
+    final data = {...document.toDataMap(), ...document.defaultFirestoreMap}
       ..removeNull();
     print('CREATE $reference $data');
     if (reference != null) {

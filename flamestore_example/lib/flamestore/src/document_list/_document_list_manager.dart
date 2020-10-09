@@ -27,7 +27,7 @@ class _DocumentListManager {
       );
     }
     return snapshots
-        .map((snapshot) => list.document._fromSnapshot(snapshot))
+        .map((snapshot) => list.document.fromSnapshot(snapshot))
         .cast<T>()
         .toList();
   }

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'flamestore/flamestore.dart';
 
 class _TweetDocumentData extends Edan {
@@ -60,7 +61,7 @@ class TweetDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> get defaultMap {
+  Map<String, dynamic> get defaultFirestoreMap {
     return {
       'likesSum': 0,
       'creationTime': FieldValue.serverTimestamp(),
@@ -83,6 +84,11 @@ class TweetDocument extends Document {
 
   @override
   List<String> get keys => [];
+
+  @override
+  TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
+    return super.fromSnapshot(snapshot) as TweetDocument;
+  }
 }
 
 class _UserDocumentData extends Edan {
@@ -138,7 +144,7 @@ class UserDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> get defaultMap {
+  Map<String, dynamic> get defaultFirestoreMap {
     return {
       'tweetsCount': 0,
     };
@@ -202,7 +208,7 @@ class LikeDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> get defaultMap => {};
+  Map<String, dynamic> get defaultFirestoreMap => {};
 
   @override
   LikeDocument fromMap(Map<String, dynamic> data) {

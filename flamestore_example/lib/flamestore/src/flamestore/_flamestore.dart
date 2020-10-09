@@ -42,15 +42,11 @@ class _Flamestore {
     return _listManager.refresh(list);
   }
 
-  Future<T> setDocument<T extends Document>(
+  void setDocument<T extends Document>(
     T document, {
-    List<DocumentList<T>> appendOnLists,
-  }) async {
-    final newDocument = await _documentManager.set(document);
-    if (appendOnLists != null) {
-      _listManager.addReference(newDocument.reference, appendOnLists);
-    }
-    return newDocument;
+    Duration debounce = Duration.zero,
+  }) {
+    _documentManager.set(document, debounce: debounce);
   }
 
   Future<T> getDocument<T extends Document>(T document,
@@ -67,6 +63,14 @@ class _Flamestore {
       _listManager.addReference(newDocument.reference, appendOnLists);
     }
     return newDocument;
+  }
+
+  Future<T> createDocumentIfAbsent<T extends Document>(T document) {
+    return _documentManager.createIfAbsent(document);
+  }
+
+  Future<void> deleteDocument<T extends Document>(T document) {
+    return _documentManager.delete(document);
   }
 
   ValueStream<T> docStreamWherePath<T extends Document>(String path) {

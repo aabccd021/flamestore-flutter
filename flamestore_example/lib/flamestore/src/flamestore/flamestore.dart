@@ -24,11 +24,14 @@ class Flamestore {
     return _flamestore.refreshList(list);
   }
 
-  Future<T> setDocument<T extends Document>(
+  void setDocument<T extends Document>(
     T document, {
-    List<DocumentList<T>> appendOnLists,
-  }) async {
-    return _flamestore.setDocument(document, appendOnLists: appendOnLists);
+    Duration debounce = Duration.zero,
+  }) {
+    return _flamestore.setDocument(
+      document,
+      debounce: debounce,
+    );
   }
 
   Future<T> getDocument<T extends Document>(T document,
@@ -41,6 +44,14 @@ class Flamestore {
     List<DocumentList<T>> appendOnLists,
   }) {
     return _flamestore.createDocument(document, appendOnLists: appendOnLists);
+  }
+
+  Future<T> createDocumentIfAbsent<T extends Document>(T document) {
+    return _flamestore.createDocumentIfAbsent(document);
+  }
+
+  Future<void> deleteDocument<T extends Document>(T document) {
+    return _flamestore.deleteDocument(document);
   }
 
   ValueStream<T> _docStreamWherePath<T extends Document>(String path) {

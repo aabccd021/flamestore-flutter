@@ -109,11 +109,13 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(await user.getIdToken() != null);
     final firebaseCurrentUser = FirebaseAuth.instance.currentUser;
     assert(user.uid == firebaseCurrentUser.uid);
-    final userDocument = UserDocument(uid: firebaseCurrentUser.uid);
-    final randomUserName = 'user' + Random().nextInt(100000).toString();
-    final userDoc = await flamestore.getDocument(userDocument, fromCache: false) ??
-        await flamestore.createDocument(userDocument.copyWith(userName: randomUserName));
-    setState(() => currentUser = userDoc);
+    final userDocument = await flamestore.createDocumentIfAbsent(
+      UserDocument(
+        uid: firebaseCurrentUser.uid,
+        userName: 'user' + Random().nextInt(100000).toString(),
+      ),
+    );
+    setState(() => currentUser = userDocument);
   }
 }
 
@@ -176,6 +178,7 @@ class LikeButton extends StatelessWidget {
               onPressed: () {
                 flamestore.setDocument(
                   like.copyWith(likeValue: (likeValue + 1) % 5),
+                  debounce: Duration(seconds: 5),
                 );
               },
             ),

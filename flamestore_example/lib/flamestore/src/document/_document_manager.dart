@@ -17,18 +17,22 @@ class _DocumentManager {
     return _state.streamWherePath<T>(path);
   }
 
-  Future<T> set<T extends Document>(T document) async {
+  void set<T extends Document>(T document, {Duration debounce}) async {
     _state.update<T>(document);
-    final oldDocument = await get(document, true);
-    if (oldDocument == null) {
-      return create(document);
-    }
-    if (document.shouldBeDeleted) {
-      await _delete(oldDocument);
-      return null;
-    }
-    print(oldDocument.toMap());
-    return _update(oldDocument, document);
+    EasyDebounce.debounce(
+      document.reference.path,
+      debounce,
+      () async {
+        final oldDocument = await get(document, true);
+        if (oldDocument == null) {
+          return create(document);
+        }
+        if (document.shouldBeDeleted) {
+          return delete(oldDocument);
+        }
+        return _update(oldDocument, document);
+      },
+    );
   }
 
   Future<T> create<T extends Document>(T document) async {
@@ -50,9 +54,13 @@ class _DocumentManager {
     return mergedDocument;
   }
 
-  Future<void> _delete<T extends Document>(T oldDocument) async {
+  Future<void> delete<T extends Document>(T oldDocument) async {
     await _state.delete(oldDocument);
     await _db.delete(oldDocument);
+  }
+
+  Future<T> createIfAbsent<T extends Document>(T document) async {
+    return await get(document, false) ?? await create(document);
   }
 
   Future<T> get<T extends Document>(T keyDocument, bool fromCache) async {
@@ -66,9 +74,8 @@ class _DocumentManager {
     if (createdDocument == null) {
       return null;
     }
-    final updatedDocument = onMemoryDocument != null
-        ? onMemoryDocument
-            .fromMap({...onMemoryDocument.toMap(), ...createdDocument.toMap()})
+    final T updatedDocument = onMemoryDocument != null
+        ? onMemoryDocument.mergeWith(createdDocument)
         : createdDocument;
     await _state.update<T>(updatedDocument);
     return updatedDocument;

@@ -9,8 +9,9 @@ abstract class Document {
   @protected
   DocumentMetadata get metadata;
 
+  @mustCallSuper
   @protected
-  Document _fromSnapshot(DocumentSnapshot snapshot) {
+  Document fromSnapshot(DocumentSnapshot snapshot) {
     return fromMap(snapshot.data())..reference = snapshot.reference;
   }
 
@@ -18,12 +19,10 @@ abstract class Document {
   Document withDefaultValue();
 
   @protected
-  Map<String, dynamic> get defaultMap;
+  Map<String, dynamic> get defaultFirestoreMap;
 
   @protected
   Document fromMap(Map<String, dynamic> data);
-
-  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 
   @protected
   Map<String, dynamic> toDataMap();
@@ -40,6 +39,12 @@ abstract class Document {
   DocumentReference get reference => keys.isEmpty
       ? _reference
       : _firestore.collection(metadata.collectionName).doc(keys.join('_'));
+
+  @mustCallSuper
+  @protected
+  Document mergeWith(Document other) => fromMap({...toMap(), ...other.toMap()});
+
+  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 }
 
 class DocumentMetadata {
