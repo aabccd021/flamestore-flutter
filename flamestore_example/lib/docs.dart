@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
-import 'flamestore/flamestore.dart';
+import 'package:flamestore/flamestore.dart';
 
 class _TweetDocumentData extends Edan {
   final DocumentReference user;

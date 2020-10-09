@@ -37,8 +37,8 @@ dependencies:
   rxdart: ^0.24.1
   easy_debounce: ^1.0.0
 
-  # flamestore:
-    # path: ../
+  flamestore:
+    path: ../
 
 dev_dependencies:
   flutter_test:
