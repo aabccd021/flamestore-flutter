@@ -7,7 +7,7 @@ abstract class Document {
   DocumentReference _reference;
 
   @protected
-  DocumentMetadata get metadata;
+  String get collectionName;
 
   @mustCallSuper
   @protected
@@ -38,7 +38,7 @@ abstract class Document {
 
   DocumentReference get reference => keys.isEmpty
       ? _reference
-      : _firestore.collection(metadata.collectionName).doc(keys.join('_'));
+      : _firestore.collection(collectionName).doc(keys.join('_'));
 
   @mustCallSuper
   @protected
@@ -47,7 +47,4 @@ abstract class Document {
   Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 }
 
-class DocumentMetadata {
-  DocumentMetadata({@required this.collectionName});
-  final String collectionName;
-}
+

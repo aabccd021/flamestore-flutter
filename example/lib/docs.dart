@@ -32,7 +32,7 @@ class UserDocument extends Document {
   final _UserDocumentData data;
 
   @override
-  DocumentMetadata get metadata => DocumentMetadata(collectionName: 'users');
+  String get collectionName => 'users';
 
   @override
   UserDocument fromMap(Map<String, dynamic> data) {
@@ -77,6 +77,11 @@ class UserDocument extends Document {
   @override
   List<String> get keys => [data.uid];
 
+  @override
+  UserDocument fromSnapshot(DocumentSnapshot snapshot) {
+    return super.fromSnapshot(snapshot) as UserDocument;
+  }
+
   UserDocument copyWith({
     String uid,
     String userName,
@@ -99,13 +104,13 @@ class _TweetDocumentData {
   final int likesSum;
   final DateTime creationTime;
 
-  _TweetDocumentData(
+  _TweetDocumentData({
     this.user,
     this.userName,
     this.tweetText,
     this.likesSum,
     this.creationTime,
-  );
+  });
 }
 
 class TweetDocument extends Document {
@@ -116,16 +121,17 @@ class TweetDocument extends Document {
     int likesSum,
     DateTime creationTime,
   }) : data = _TweetDocumentData(
-          user,
-          userName,
-          tweetText,
-          likesSum,
-          creationTime,
+          user: user,
+          userName: userName,
+          tweetText: tweetText,
+          likesSum: likesSum,
+          creationTime: creationTime,
         );
+
   final _TweetDocumentData data;
 
   @override
-  DocumentMetadata get metadata => DocumentMetadata(collectionName: 'tweets');
+  String get collectionName => 'tweets';
 
   @override
   TweetDocument fromMap(Map<String, dynamic> data) {
@@ -178,6 +184,22 @@ class TweetDocument extends Document {
   TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
     return super.fromSnapshot(snapshot) as TweetDocument;
   }
+
+  TweetDocument copyWith({
+    DocumentReference user,
+    String userName,
+    String tweetText,
+    int likesSum,
+    DateTime creationTime,
+  }) {
+    return TweetDocument(
+      user: user ?? this.data.user,
+      userName: userName ?? this.data.userName,
+      tweetText: tweetText ?? this.data.tweetText,
+      likesSum: likesSum ?? this.data.likesSum,
+      creationTime: creationTime ?? this.data.creationTime,
+    );
+  }
 }
 
 class _LikeDocumentData {
@@ -185,7 +207,11 @@ class _LikeDocumentData {
   final DocumentReference user;
   final DocumentReference tweet;
 
-  _LikeDocumentData(this.likeValue, this.user, this.tweet);
+  _LikeDocumentData({
+    this.likeValue,
+    this.user,
+    this.tweet,
+  });
 }
 
 class LikeDocument extends Document {
@@ -193,21 +219,16 @@ class LikeDocument extends Document {
     int likeValue,
     @required DocumentReference user,
     @required DocumentReference tweet,
-  }) : data = _LikeDocumentData(likeValue, user, tweet);
+  }) : data = _LikeDocumentData(
+          likeValue: likeValue,
+          user: user,
+          tweet: tweet,
+        );
 
   final _LikeDocumentData data;
 
   @override
-  LikeDocument withDefaultValue() {
-    return LikeDocument(
-      likeValue: data.likeValue,
-      user: data.user,
-      tweet: data.tweet,
-    );
-  }
-
-  @override
-  Map<String, dynamic> get defaultFirestoreMap => {};
+  String get collectionName => 'likes';
 
   @override
   LikeDocument fromMap(Map<String, dynamic> data) {
@@ -219,10 +240,18 @@ class LikeDocument extends Document {
   }
 
   @override
-  DocumentMetadata get metadata => DocumentMetadata(collectionName: 'likes');
+  LikeDocument withDefaultValue() {
+    return LikeDocument(
+      likeValue: data.likeValue,
+      user: data.user,
+      tweet: data.tweet,
+    );
+  }
 
   @override
-  bool get shouldBeDeleted => data.likeValue == 0;
+  Map<String, dynamic> get defaultFirestoreMap {
+    return {};
+  }
 
   @override
   Map<String, dynamic> toDataMap() {
@@ -234,7 +263,18 @@ class LikeDocument extends Document {
   }
 
   @override
-  List<String> get keys => [data?.user?.id, data?.tweet?.id];
+  bool get shouldBeDeleted => data.likeValue == 0;
+
+  @override
+  List<String> get keys => [
+        data?.user?.id,
+        data?.tweet?.id,
+      ];
+
+  @override
+  LikeDocument fromSnapshot(DocumentSnapshot snapshot) {
+    return super.fromSnapshot(snapshot) as LikeDocument;
+  }
 
   LikeDocument copyWith({
     int likeValue,

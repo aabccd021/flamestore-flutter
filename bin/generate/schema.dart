@@ -41,6 +41,30 @@ class Field {
     syncFrom =
         json['syncFrom'] != null ? SyncFrom.fromJson(json['syncFrom']) : null;
   }
+
+  String toStringFromSchema(Schema schema, Collection thisCollection) {
+    if (toString() != '') {
+      return toString();
+    }
+    if (syncFrom != null) {
+      final targetCollection =
+          thisCollection.fields[syncFrom.reference].type.path.collection;
+      return schema.collections[targetCollection].fields[syncFrom.field]
+          .toString();
+    }
+    return '';
+  }
+
+  @override
+  String toString() {
+    if (type != null) {
+      return type.toString();
+    }
+    if (sum != null || count != null) {
+      return 'int';
+    }
+    return '';
+  }
 }
 
 class FieldType {
@@ -57,6 +81,23 @@ class FieldType {
         : null;
     path = json['path'] != null ? ReferenceField.fromJson(json['path']) : null;
     int = json['int'] != null ? IntField.fromJson(json['int']) : null;
+  }
+
+  @override
+  String toString() {
+    if (string != null) {
+      return 'String';
+    }
+    if (timestamp != null) {
+      return 'DateTime';
+    }
+    if (path != null) {
+      return 'DocumentReference';
+    }
+    if (int != null) {
+      return 'int';
+    }
+    return '';
   }
 }
 
@@ -94,10 +135,12 @@ class IntField {
   bool isOwnerUid;
   int min;
   int max;
+  int deleteDocWhen;
 
   IntField.fromJson(Map<String, dynamic> json) {
     min = json['min'];
     max = json['max'];
+    deleteDocWhen = json['deleteDocWhen'];
   }
 }
 

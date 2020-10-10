@@ -25,8 +25,7 @@ class _DocumentFirestoreAdapter {
     if (reference != null) {
       return reference..set(data, SetOptions(merge: true));
     }
-    final collectionName = document.metadata.collectionName;
-    return _firestore.collection(collectionName).add(data);
+    return _firestore.collection(document.collectionName).add(data);
   }
 
   Future<void> update<T extends Document>(

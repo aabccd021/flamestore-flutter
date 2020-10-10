@@ -28,7 +28,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 """;
   for (final collectionEntry in schema.collections.entries) {
-    content += generateCollection(collectionEntry.key, collectionEntry.value);
+    content += generateCollection(
+      schema,
+      collectionEntry.key,
+      collectionEntry.value,
+    );
   }
   return content;
 }

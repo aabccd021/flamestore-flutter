@@ -10,8 +10,7 @@ class _DocumentListFirestoreAdapter {
     DocumentList list,
     DocumentSnapshot lastDocument,
   ) async {
-    final collectionName = list.document.metadata.collectionName;
-    final collection = _firestore.collection(collectionName);
+    final collection = _firestore.collection(list.document.collectionName);
     Query query = list.query(collection).limit(list.limit);
     if (lastDocument != null) {
       query = query.startAfterDocument(lastDocument);
