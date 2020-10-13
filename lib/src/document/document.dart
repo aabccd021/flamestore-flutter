@@ -1,6 +1,8 @@
 part of '../../flamestore.dart';
 
 abstract class Document {
+  // TODO: store all data as map
+  // TODO: cast parent abstract to child class
   Document({FirebaseFirestore firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
@@ -46,5 +48,3 @@ abstract class Document {
 
   Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 }
-
-

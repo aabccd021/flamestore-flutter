@@ -24,6 +24,7 @@ class _DocumentManager {
       debounce,
       () async {
         final oldDocument = await get(document, true);
+        // TODO: update count, sum, syncfrom
         if (oldDocument == null) {
           return create(document);
         }
@@ -47,6 +48,7 @@ class _DocumentManager {
   }
 
   Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
+    // TODO: Don't update if no document change
     final data = {...oldDocument.toMap(), ...newDocument.toMap()};
     final mergedDocument = oldDocument.fromMap(data);
     _state.update<T>(mergedDocument);
