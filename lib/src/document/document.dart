@@ -36,10 +36,6 @@ abstract class Document {
 
   Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 
-  bool dataEquals(Document other) {
-    return mapEquals(toDataMap(), other.toDataMap());
-  }
-
   @mustCallSuper
   @protected
   Document mergeDataWith(Document other) =>

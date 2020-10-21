@@ -149,7 +149,9 @@ class TweetDocument extends Document {
       userName: data['userName'],
       tweetText: data['tweetText'],
       likesSum: data['likesSum'],
-      creationTime: data['creationTime']?.toDate(),
+      creationTime: data['creationTime'] is DateTime
+          ? data['creationTime']
+          : data['creationTime']?.toDate(),
     );
   }
 

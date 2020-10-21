@@ -49,10 +49,8 @@ class _DocumentManager {
 
   Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
     final mergedDocument = oldDocument.mergeDataWith(newDocument);
-    if (!mergedDocument.dataEquals(oldDocument)) {
-      _state.update<T>(mergedDocument);
-      await _db.update(oldDocument.reference, newDocument);
-    }
+    _state.update<T>(mergedDocument);
+    await _db.update(oldDocument.reference, newDocument);
     return mergedDocument;
   }
 

@@ -43,8 +43,12 @@ String generateCollection(
   String generateFromMap() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
-      final adapter = field?.type?.timestamp != null ? '?.toDate()' : '';
-      content += "$fieldName: data['$fieldName']$adapter,\n";
+      if (field?.type?.timestamp != null) {
+        content +=
+            "$fieldName: data['$fieldName'] is DateTime ? data['$fieldName'] : data['$fieldName']?.toDate(),\n";
+      } else {
+        content += "$fieldName: data['$fieldName'],\n";
+      }
     });
     return content;
   }
@@ -175,8 +179,8 @@ String generateCollection(
     }
 
     @override
-    ${colName}Document mergeWith(Document other){
-      return super.mergeWith(other) as ${colName}Document;
+    ${colName}Document mergeDataWith(Document other){
+      return super.mergeDataWith(other) as ${colName}Document;
     }
 
     ${colName}Document copyWith({
