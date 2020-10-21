@@ -21,9 +21,6 @@ abstract class Document {
   Document withDefaultValue();
 
   @protected
-  Map<String, dynamic> get defaultFirestoreMap;
-
-  @protected
   Document fromMap(Map<String, dynamic> data);
 
   @protected

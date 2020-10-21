@@ -7,6 +7,7 @@ extension CapExtension on String {
 }
 
 String generateCollection(
+  // TODO: cast method di super jadi class childnya (document as TweetDocument)
   Schema schema,
   String rawColName,
   Collection collection,
@@ -61,22 +62,6 @@ String generateCollection(
         value = 'data.$fieldName';
       }
       content += "$fieldName: $value,\n";
-    });
-    return content;
-  }
-
-  String generateDefaultFirestoremap() {
-    String content = '';
-    collection.fields.forEach((fieldName, field) {
-      String value = '';
-      if (field.count != null || field.sum != null) {
-        value = "0";
-      } else if (field?.type?.timestamp?.serverTimestamp == true) {
-        value = 'FieldValue.serverTimestamp()';
-      }
-      if (value != '') {
-        content += "'$fieldName': $value,";
-      }
     });
     return content;
   }
@@ -147,12 +132,6 @@ String generateCollection(
       );
     }
 
-    @override
-    Map<String, dynamic> get defaultFirestoreMap {
-      return {
-        ${generateDefaultFirestoremap()}
-      };
-    }
 
     @override
     Map<String, dynamic> toDataMap() {

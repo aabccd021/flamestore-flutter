@@ -55,13 +55,6 @@ class UserDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> get defaultFirestoreMap {
-    return {
-      'tweetsCount': 0,
-    };
-  }
-
-  @override
   Map<String, dynamic> toDataMap() {
     return {
       'uid': data.uid,
@@ -156,14 +149,6 @@ class TweetDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> get defaultFirestoreMap {
-    return {
-      'likesSum': 0,
-      'creationTime': FieldValue.serverTimestamp(),
-    };
-  }
-
-  @override
   Map<String, dynamic> toDataMap() {
     return {
       'user': data.user,
@@ -246,11 +231,6 @@ class LikeDocument extends Document {
       user: data.user,
       tweet: data.tweet,
     );
-  }
-
-  @override
-  Map<String, dynamic> get defaultFirestoreMap {
-    return {};
   }
 
   @override

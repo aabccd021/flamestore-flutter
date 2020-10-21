@@ -19,8 +19,7 @@ class _DocumentFirestoreAdapter {
 
   Future<DocumentReference> create<T extends Document>(T document) async {
     final reference = document.reference;
-    final data = {...document.toDataMap(), ...document.defaultFirestoreMap}
-      ..removeNull();
+    final data = document.toDataMap()..removeNull();
     print('CREATE $reference $data');
     if (reference != null) {
       return reference..set(data, SetOptions(merge: true));
