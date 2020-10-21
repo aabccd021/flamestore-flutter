@@ -74,6 +74,17 @@ String generateCollection(
     return content;
   }
 
+  String generateToFirestoreCreateMap() {
+    String content = '';
+    collection.fields.forEach((fieldName, field) {
+      if (field.type != null &&
+          field?.type?.timestamp?.serverTimestamp == null) {
+        content += "'$fieldName': data.$fieldName,";
+      }
+    });
+    return content;
+  }
+
   String generateShouldBeDeleted() {
     String content = 'false';
     collection.fields.forEach((fieldName, field) {
@@ -139,6 +150,14 @@ String generateCollection(
         ${generateToDataMap()}
       };
     }
+
+    @override
+    Map<String, dynamic> toFirestoreCreateMap() {
+      return {
+        ${generateToFirestoreCreateMap()}
+      };
+    }
+
 
     @override
     bool get shouldBeDeleted => ${generateShouldBeDeleted()};

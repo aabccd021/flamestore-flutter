@@ -65,6 +65,15 @@ class UserDocument extends Document {
   }
 
   @override
+  Map<String, dynamic> toFirestoreCreateMap() {
+    return {
+      'uid': data.uid,
+      'userName': data.userName,
+      'bio': data.bio,
+    };
+  }
+
+  @override
   bool get shouldBeDeleted => false;
 
   @override
@@ -160,6 +169,14 @@ class TweetDocument extends Document {
   }
 
   @override
+  Map<String, dynamic> toFirestoreCreateMap() {
+    return {
+      'user': data.user,
+      'tweetText': data.tweetText,
+    };
+  }
+
+  @override
   bool get shouldBeDeleted => false;
 
   @override
@@ -235,6 +252,15 @@ class LikeDocument extends Document {
 
   @override
   Map<String, dynamic> toDataMap() {
+    return {
+      'likeValue': data.likeValue,
+      'user': data.user,
+      'tweet': data.tweet,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toFirestoreCreateMap() {
     return {
       'likeValue': data.likeValue,
       'user': data.user,

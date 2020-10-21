@@ -27,6 +27,9 @@ abstract class Document {
   Map<String, dynamic> toDataMap();
 
   @protected
+  Map<String, dynamic> toFirestoreCreateMap();
+
+  @protected
   bool get shouldBeDeleted;
 
   @protected
