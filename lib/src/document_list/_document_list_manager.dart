@@ -37,10 +37,11 @@ class _DocumentListManager {
     return _state[list];
   }
 
-  Future<void> refresh(DocumentList list) async {
+  Future<List<T>> refresh<T extends Document, V extends DocumentList<T>>(
+      V list) async {
     _createIfAbsent(list);
     _state[list].add(_DocumentListState());
-    await get(list);
+    return get(list);
   }
 
   void addReference(

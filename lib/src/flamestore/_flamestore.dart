@@ -17,6 +17,13 @@ class _Flamestore {
     return _documentManager.addFromList<T>(documents);
   }
 
+  Future<void> refreshList<T extends Document, V extends DocumentList<T>>(
+    DocumentList<T> list,
+    ) async {
+    final documents = await _listManager.refresh<T, V>(list);
+    return _documentManager.addFromList<T>(documents);
+  }
+
   ValueStream<DocumentListState<T>>
       streamOfList<T extends Document, V extends DocumentList<T>>(
     DocumentList list,
@@ -36,10 +43,6 @@ class _Flamestore {
       state.hasMore,
       Rx.combineLatestList(stream).shareValue(),
     );
-  }
-
-  Future<void> refreshList(DocumentList list) {
-    return _listManager.refresh(list);
   }
 
   void setDocument<T extends Document>(
