@@ -38,6 +38,7 @@ class _DocumentManager {
 
   Future<T> create<T extends Document>(T document) async {
     final newDocument = document.withDefaultValue();
+    //TODO: prevent unique value duplication
     if (newDocument.reference != null) {
       _state.update<T>(newDocument);
     }
