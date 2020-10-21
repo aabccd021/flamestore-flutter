@@ -48,11 +48,11 @@ class _DocumentManager {
   }
 
   Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
-    // TODO: Don't update if no document change
-    final data = {...oldDocument.toMap(), ...newDocument.toMap()};
-    final mergedDocument = oldDocument.fromMap(data);
-    _state.update<T>(mergedDocument);
-    await _db.update(oldDocument.reference, newDocument);
+    final mergedDocument = oldDocument.mergeDataWith(newDocument);
+    if (!mergedDocument.dataEquals(oldDocument)) {
+      _state.update<T>(mergedDocument);
+      await _db.update(oldDocument.reference, newDocument);
+    }
     return mergedDocument;
   }
 
@@ -77,7 +77,7 @@ class _DocumentManager {
       return null;
     }
     final T updatedDocument = onMemoryDocument != null
-        ? onMemoryDocument.mergeWith(createdDocument)
+        ? onMemoryDocument.mergeDataWith(createdDocument)
         : createdDocument;
     await _state.update<T>(updatedDocument);
     return updatedDocument;

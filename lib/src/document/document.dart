@@ -1,8 +1,6 @@
 part of '../../flamestore.dart';
 
 abstract class Document {
-  // TODO: store all data as map
-  // TODO: cast parent abstract to child class
   Document({FirebaseFirestore firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
@@ -11,14 +9,8 @@ abstract class Document {
   @protected
   String get collectionName;
 
-  @mustCallSuper
   @protected
-  Document fromSnapshot(DocumentSnapshot snapshot) {
-    return fromMap(snapshot.data())..reference = snapshot.reference;
-  }
-
-  @protected
-  Document withDefaultValue();
+  Map<String, dynamic> get defaultValueMap;
 
   @protected
   Document fromMap(Map<String, dynamic> data);
@@ -27,7 +19,7 @@ abstract class Document {
   Map<String, dynamic> toDataMap();
 
   @protected
-  Map<String, dynamic> toFirestoreCreateMap();
+  List<String> firestoreCreateFields();
 
   @protected
   bool get shouldBeDeleted;
@@ -42,9 +34,26 @@ abstract class Document {
       ? _reference
       : _firestore.collection(collectionName).doc(keys.join('_'));
 
+  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
+
+  bool dataEquals(Document other) {
+    return mapEquals(toDataMap(), other.toDataMap());
+  }
+
   @mustCallSuper
   @protected
-  Document mergeWith(Document other) => fromMap({...toMap(), ...other.toMap()});
+  Document mergeDataWith(Document other) =>
+      fromMap({...toMap(), ...other.toMap()});
 
-  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
+  @mustCallSuper
+  @protected
+  Document fromSnapshot(DocumentSnapshot snapshot) {
+    return fromMap(snapshot.data())..reference = snapshot.reference;
+  }
+
+  @mustCallSuper
+  @protected
+  Document withDefaultValue() {
+    return fromMap({...toMap(), ...defaultValueMap});
+  }
 }

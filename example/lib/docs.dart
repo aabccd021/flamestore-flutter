@@ -45,13 +45,10 @@ class UserDocument extends Document {
   }
 
   @override
-  UserDocument withDefaultValue() {
-    return UserDocument(
-      uid: data.uid,
-      userName: data.userName,
-      bio: data.bio,
-      tweetsCount: 0,
-    );
+  Map<String, dynamic> get defaultValueMap {
+    return {
+      'tweetsCount': 0,
+    };
   }
 
   @override
@@ -65,12 +62,12 @@ class UserDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> toFirestoreCreateMap() {
-    return {
-      'uid': data.uid,
-      'userName': data.userName,
-      'bio': data.bio,
-    };
+  List<String> firestoreCreateFields() {
+    return [
+      'uid',
+      'userName',
+      'bio',
+    ];
   }
 
   @override
@@ -82,6 +79,16 @@ class UserDocument extends Document {
   @override
   UserDocument fromSnapshot(DocumentSnapshot snapshot) {
     return super.fromSnapshot(snapshot) as UserDocument;
+  }
+
+  @override
+  UserDocument withDefaultValue() {
+    return super.withDefaultValue() as UserDocument;
+  }
+
+  @override
+  UserDocument mergeDataWith(Document other) {
+    return super.mergeDataWith(other) as UserDocument;
   }
 
   UserDocument copyWith({
@@ -147,14 +154,11 @@ class TweetDocument extends Document {
   }
 
   @override
-  TweetDocument withDefaultValue() {
-    return TweetDocument(
-      user: data.user,
-      userName: data.userName,
-      tweetText: data.tweetText,
-      likesSum: 0,
-      creationTime: DateTime.now(),
-    );
+  Map<String, dynamic> get defaultValueMap {
+    return {
+      'likesSum': 0,
+      'creationTime': DateTime.now(),
+    };
   }
 
   @override
@@ -169,11 +173,11 @@ class TweetDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> toFirestoreCreateMap() {
-    return {
-      'user': data.user,
-      'tweetText': data.tweetText,
-    };
+  List<String> firestoreCreateFields() {
+    return [
+      'user',
+      'tweetText',
+    ];
   }
 
   @override
@@ -185,6 +189,16 @@ class TweetDocument extends Document {
   @override
   TweetDocument fromSnapshot(DocumentSnapshot snapshot) {
     return super.fromSnapshot(snapshot) as TweetDocument;
+  }
+
+  @override
+  TweetDocument withDefaultValue() {
+    return super.withDefaultValue() as TweetDocument;
+  }
+
+  @override
+  TweetDocument mergeDataWith(Document other) {
+    return super.mergeDataWith(other) as TweetDocument;
   }
 
   TweetDocument copyWith({
@@ -242,12 +256,8 @@ class LikeDocument extends Document {
   }
 
   @override
-  LikeDocument withDefaultValue() {
-    return LikeDocument(
-      likeValue: data.likeValue,
-      user: data.user,
-      tweet: data.tweet,
-    );
+  Map<String, dynamic> get defaultValueMap {
+    return {};
   }
 
   @override
@@ -260,12 +270,12 @@ class LikeDocument extends Document {
   }
 
   @override
-  Map<String, dynamic> toFirestoreCreateMap() {
-    return {
-      'likeValue': data.likeValue,
-      'user': data.user,
-      'tweet': data.tweet,
-    };
+  List<String> firestoreCreateFields() {
+    return [
+      'likeValue',
+      'user',
+      'tweet',
+    ];
   }
 
   @override
@@ -280,6 +290,16 @@ class LikeDocument extends Document {
   @override
   LikeDocument fromSnapshot(DocumentSnapshot snapshot) {
     return super.fromSnapshot(snapshot) as LikeDocument;
+  }
+
+  @override
+  LikeDocument withDefaultValue() {
+    return super.withDefaultValue() as LikeDocument;
+  }
+
+  @override
+  LikeDocument mergeDataWith(Document other) {
+    return super.mergeDataWith(other) as LikeDocument;
   }
 
   LikeDocument copyWith({

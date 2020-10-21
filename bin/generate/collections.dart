@@ -7,7 +7,6 @@ extension CapExtension on String {
 }
 
 String generateCollection(
-  // TODO: cast method di super jadi class childnya (document as TweetDocument)
   Schema schema,
   String rawColName,
   Collection collection,
@@ -53,15 +52,15 @@ String generateCollection(
   String generateWithDefaultValue() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
-      String value;
+      String value = '';
       if (field.sum != null || field.count != null) {
         value = '0';
       } else if (field?.type?.timestamp?.serverTimestamp == true) {
         value = 'DateTime.now()';
-      } else {
-        value = 'data.$fieldName';
       }
-      content += "$fieldName: $value,\n";
+      if (value != '') {
+        content += "'$fieldName': $value,\n";
+      }
     });
     return content;
   }
@@ -74,12 +73,12 @@ String generateCollection(
     return content;
   }
 
-  String generateToFirestoreCreateMap() {
+  String firestoreCreateFields() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
       if (field.type != null &&
           field?.type?.timestamp?.serverTimestamp == null) {
-        content += "'$fieldName': data.$fieldName,";
+        content += "'$fieldName',";
       }
     });
     return content;
@@ -137,10 +136,10 @@ String generateCollection(
     }
 
     @override
-    ${colName}Document withDefaultValue() {
-      return ${colName}Document(
+    Map<String, dynamic> get defaultValueMap {
+      return {
         ${generateWithDefaultValue()}
-      );
+      };
     }
 
 
@@ -152,10 +151,10 @@ String generateCollection(
     }
 
     @override
-    Map<String, dynamic> toFirestoreCreateMap() {
-      return {
-        ${generateToFirestoreCreateMap()}
-      };
+    List<String> firestoreCreateFields() {
+      return [
+        ${firestoreCreateFields()}
+      ];
     }
 
 
@@ -168,6 +167,16 @@ String generateCollection(
     @override
     ${colName}Document fromSnapshot(DocumentSnapshot snapshot){
       return super.fromSnapshot(snapshot) as ${colName}Document;
+    }
+
+    @override
+    ${colName}Document withDefaultValue(){
+      return super.withDefaultValue() as ${colName}Document;
+    }
+
+    @override
+    ${colName}Document mergeWith(Document other){
+      return super.mergeWith(other) as ${colName}Document;
     }
 
     ${colName}Document copyWith({

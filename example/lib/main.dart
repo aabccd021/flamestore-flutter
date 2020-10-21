@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flamestore Demo',
+      darkTheme: ThemeData(brightness: Brightness.dark),
       home: MyHomePage(),
     );
   }
