@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:inflection2/inflection2.dart';
 
 import 'generate/collections.dart';
 import 'generate/schema.dart';
@@ -14,25 +15,30 @@ main(List<String> args) async {
     ..addOption(inputPath, abbr: 'i')
     ..addOption(ouputPath, abbr: 'o');
   final argResult = parser.parse(args);
-  final jsonString = await File(argResult[inputPath]).readAsString();
+  final jsonString =
+      await File(argResult[inputPath] ?? '../flamestore.json').readAsString();
   final schema = Schema.fromJson(json.decode(jsonString));
-  final generated = generate(schema);
-  await File(argResult[ouputPath]).writeAsString(generated);
-  await Process.run('flutter', ['format', argResult[ouputPath]]);
+  print(argResult[ouputPath]);
+  await generate(argResult[ouputPath] ?? 'lib/flamestore', schema);
 }
 
-String generate(Schema schema) {
-  String content = """
+Future<void> generate(String path, Schema schema) async {
+  final header = """
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 """;
   for (final collectionEntry in schema.collections.entries) {
-    content += generateCollection(
-      schema,
-      collectionEntry.key,
-      collectionEntry.value,
-    );
+    final colName = collectionEntry.key;
+    final content = header +
+        generateCollection(
+          schema,
+          colName,
+          collectionEntry.value,
+        );
+    final singularColName = SINGULAR.convert(colName);
+    final filePath = '${path}/${singularColName}Document.dart';
+    await File(filePath).writeAsString(content);
+    await Process.run('flutter', ['format', filePath]);
   }
-  return content;
 }

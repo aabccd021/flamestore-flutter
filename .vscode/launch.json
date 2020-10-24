@@ -15,10 +15,8 @@
       "type": "dart",
       "program": "bin/generate.dart",
       "args": [
-        "--input-path",
-        "schema_example/sample.json",
         "--output-path",
-        "example/lib/docs.dart",
+        "example/lib/flamestore",
       ],
     },
     {
