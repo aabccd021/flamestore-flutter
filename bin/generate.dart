@@ -18,7 +18,6 @@ main(List<String> args) async {
   final jsonString =
       await File(argResult[inputPath] ?? '../flamestore.json').readAsString();
   final schema = Schema.fromJson(json.decode(jsonString));
-  print(argResult[ouputPath]);
   await generate(argResult[ouputPath] ?? 'lib/flamestore', schema);
 }
 
@@ -37,7 +36,7 @@ import 'package:flamestore/flamestore.dart';
           collectionEntry.value,
         );
     final singularColName = SINGULAR.convert(colName);
-    final filePath = '${path}/${singularColName}Document.dart';
+    final filePath = '${path}/${singularColName}.flamestore.dart';
     await File(filePath).writeAsString(content);
     await Process.run('flutter', ['format', filePath]);
   }

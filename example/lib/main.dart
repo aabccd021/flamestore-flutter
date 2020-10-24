@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'flamestore/likeDocument.dart';
-import 'flamestore/tweetDocument.dart';
-import 'flamestore/userDocument.dart';
+import 'flamestore/like.flamestore.dart';
+import 'flamestore/tweet.flamestore.dart';
+import 'flamestore/user.flamestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

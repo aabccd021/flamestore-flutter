@@ -3,12 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 
 class _TweetDocumentData {
-  final DocumentReference user;
-  final String userName;
-  final String tweetText;
-  final int likesSum;
-  final DateTime creationTime;
-
   _TweetDocumentData({
     this.user,
     this.userName,
@@ -16,6 +10,11 @@ class _TweetDocumentData {
     this.likesSum,
     this.creationTime,
   });
+  final DocumentReference user;
+  final String userName;
+  final String tweetText;
+  final int likesSum;
+  final DateTime creationTime;
 }
 
 class TweetDocument extends Document {
@@ -107,11 +106,11 @@ class TweetDocument extends Document {
     DateTime creationTime,
   }) {
     return TweetDocument(
-      user: user ?? this.data.user,
-      userName: userName ?? this.data.userName,
-      tweetText: tweetText ?? this.data.tweetText,
-      likesSum: likesSum ?? this.data.likesSum,
-      creationTime: creationTime ?? this.data.creationTime,
+      user: user ?? data.user,
+      userName: userName ?? data.userName,
+      tweetText: tweetText ?? data.tweetText,
+      likesSum: likesSum ?? data.likesSum,
+      creationTime: creationTime ?? data.creationTime,
     );
   }
 }

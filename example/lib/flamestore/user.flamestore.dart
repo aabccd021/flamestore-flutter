@@ -3,17 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 
 class _UserDocumentData {
-  final String uid;
-  final String userName;
-  final String bio;
-  final int tweetsCount;
-
   _UserDocumentData({
     this.uid,
     this.userName,
     this.bio,
     this.tweetsCount,
   });
+  final String uid;
+  final String userName;
+  final String bio;
+  final int tweetsCount;
 }
 
 class UserDocument extends Document {
@@ -98,10 +97,10 @@ class UserDocument extends Document {
     int tweetsCount,
   }) {
     return UserDocument(
-      uid: uid ?? this.data.uid,
-      userName: userName ?? this.data.userName,
-      bio: bio ?? this.data.bio,
-      tweetsCount: tweetsCount ?? this.data.tweetsCount,
+      uid: uid ?? data.uid,
+      userName: userName ?? data.userName,
+      bio: bio ?? data.bio,
+      tweetsCount: tweetsCount ?? data.tweetsCount,
     );
   }
 }

@@ -3,15 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 
 class _LikeDocumentData {
-  final int likeValue;
-  final DocumentReference user;
-  final DocumentReference tweet;
-
   _LikeDocumentData({
     this.likeValue,
     this.user,
     this.tweet,
   });
+  final int likeValue;
+  final DocumentReference user;
+  final DocumentReference tweet;
 }
 
 class LikeDocument extends Document {
@@ -92,9 +91,9 @@ class LikeDocument extends Document {
     DocumentReference tweet,
   }) {
     return LikeDocument(
-      likeValue: likeValue ?? this.data.likeValue,
-      user: user ?? this.data.user,
-      tweet: tweet ?? this.data.tweet,
+      likeValue: likeValue ?? data.likeValue,
+      user: user ?? data.user,
+      tweet: tweet ?? data.tweet,
     );
   }
 }

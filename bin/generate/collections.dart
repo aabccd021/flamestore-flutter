@@ -115,10 +115,10 @@ String generateCollection(
 
   return """
   class _${colName}DocumentData {
-    ${generateFinalTypeFieldName()}
     _${colName}DocumentData({
       ${collection.fields.keys.map((e) => 'this.$e,').join('')}
     });
+    ${generateFinalTypeFieldName()}
   }
   class ${colName}Document extends Document{
     ${colName}Document({
@@ -187,7 +187,7 @@ String generateCollection(
       ${generateTypeFieldName()}
     }) {
       return ${colName}Document(
-        ${collection.fields.keys.map((e) => '$e: $e ?? this.data.$e,').join()}
+        ${collection.fields.keys.map((e) => '$e: $e ?? data.$e,').join()}
       );
     }
   }
