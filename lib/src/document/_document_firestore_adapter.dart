@@ -8,16 +8,7 @@ class _DocumentFirestoreAdapter {
 
   Future<T> get<T extends Document>(T document) async {
     final reference = document.reference;
-    DocumentSnapshot snapshot;
-    try {
-      snapshot = await reference.get();
-    } on FirebaseException catch (e) {
-      if (e.code != 'permission-denied') {
-        throw (e);
-      }
-      print(e);
-      return null;
-    }
+    final snapshot = await reference.get();
     final data = snapshot?.data();
     print('GET $reference $data');
     if (data == null) {
