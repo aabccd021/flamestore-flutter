@@ -31,7 +31,6 @@ abstract class Document {
   @protected
   set reference(DocumentReference reference) => _reference = reference;
 
-  @protected
   set id(String id) => _id = id;
 
   DocumentReference get reference {
