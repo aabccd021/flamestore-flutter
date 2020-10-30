@@ -38,7 +38,8 @@ class _DocumentListManager {
   }
 
   Future<List<T>> refresh<T extends Document, V extends DocumentList<T>>(
-      V list) async {
+    V list,
+  ) async {
     _createIfAbsent(list);
     _state[list].add(_DocumentListState());
     return get(list);

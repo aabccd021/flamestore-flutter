@@ -31,7 +31,7 @@ abstract class Document {
   @protected
   set reference(DocumentReference reference) => _reference = reference;
 
-  set id(String id) => _id = id;
+  set withId(String id) => _id = id;
 
   DocumentReference get reference {
     if (keys.isNotEmpty) {
@@ -47,8 +47,10 @@ abstract class Document {
 
   @mustCallSuper
   @protected
-  Document mergeDataWith(Document other) =>
-      fromMap({...toMap(), ...other.toMap()});
+  Document mergeDataWith(Document other) {
+    return fromMap({...toMap(), ...other.toMap()})
+      ..reference = other.reference ?? reference;
+  }
 
   @mustCallSuper
   @protected
@@ -59,6 +61,6 @@ abstract class Document {
   @mustCallSuper
   @protected
   Document withDefaultValue() {
-    return fromMap({...toMap(), ...defaultValueMap});
+    return fromMap({...toMap(), ...defaultValueMap})..reference = reference;
   }
 }

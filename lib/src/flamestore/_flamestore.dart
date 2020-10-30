@@ -19,7 +19,7 @@ class _Flamestore {
 
   Future<void> refreshList<T extends Document, V extends DocumentList<T>>(
     DocumentList<T> list,
-    ) async {
+  ) async {
     final documents = await _listManager.refresh<T, V>(list);
     return _documentManager.addFromList<T>(documents);
   }
@@ -52,8 +52,10 @@ class _Flamestore {
     _documentManager.set(document, debounce: debounce);
   }
 
-  Future<T> getDocument<T extends Document>(T document,
-      {bool fromCache = true}) {
+  Future<T> getDocument<T extends Document>(
+    T document, {
+    bool fromCache = true,
+  }) {
     return _documentManager.get(document, fromCache);
   }
 
