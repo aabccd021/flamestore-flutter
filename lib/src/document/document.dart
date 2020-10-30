@@ -5,6 +5,7 @@ abstract class Document {
       : _firestore = firestore ?? FirebaseFirestore.instance;
   final FirebaseFirestore _firestore;
   DocumentReference _reference;
+  String _id = '';
 
   @protected
   String get collectionName;
@@ -28,11 +29,20 @@ abstract class Document {
   List<String> get keys;
 
   @protected
-  set reference(DocumentReference reference) => _reference ??= reference;
+  set reference(DocumentReference reference) => _reference = reference;
 
-  DocumentReference get reference => keys.isEmpty
-      ? _reference
-      : _firestore.collection(collectionName).doc(keys.join('_'));
+  @protected
+  set id(String id) => _id = id;
+
+  DocumentReference get reference {
+    if (keys.isNotEmpty) {
+      return _firestore.collection(collectionName).doc(keys.join('_'));
+    }
+    if (_id.isNotEmpty) {
+      return _firestore.collection(collectionName).doc(_id);
+    }
+    return _reference;
+  }
 
   Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
 
