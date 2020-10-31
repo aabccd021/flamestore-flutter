@@ -31,6 +31,9 @@ abstract class Document {
   @protected
   set reference(DocumentReference reference) => _reference = reference;
 
+  @protected
+  List<Sum> get sum;
+
   set id(String id) => _id = id;
 
   DocumentReference get reference {

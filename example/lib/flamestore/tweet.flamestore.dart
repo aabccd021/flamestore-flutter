@@ -113,4 +113,7 @@ class TweetDocument extends Document {
       creationTime: creationTime ?? data.creationTime,
     );
   }
+
+  @override
+  List<Sum> get sum => [];
 }

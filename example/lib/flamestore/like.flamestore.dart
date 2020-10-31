@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
+import 'package:flutter/foundation.dart';
 
 class _LikeDocumentData {
   _LikeDocumentData({
@@ -96,4 +96,13 @@ class LikeDocument extends Document {
       tweet: tweet ?? data.tweet,
     );
   }
+
+  @override
+  List<Sum> get sum => [
+        Sum(
+          field: 'likeValue',
+          sumDocument: data.tweet,
+          sumField: 'likesSum',
+        ),
+      ];
 }

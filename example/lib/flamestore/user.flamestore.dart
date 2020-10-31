@@ -103,4 +103,7 @@ class UserDocument extends Document {
       tweetsCount: tweetsCount ?? data.tweetsCount,
     );
   }
+
+  @override
+  List<Sum> get sum => [];
 }
