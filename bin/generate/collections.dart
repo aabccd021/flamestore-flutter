@@ -88,6 +88,24 @@ String generateCollection(
     return content;
   }
 
+  String sum() {
+    String content = '';
+    schema.collections.forEach((cName, c) {
+      if (cName != rawColName) {
+        c.fields.forEach((fName, f) {
+          if (f.sum != null && f.sum.collection == rawColName) {
+            content += """Sum(
+              field: '${f.sum.field}',
+              sumDocument: data.${f.sum.reference},
+              sumField: '$fName',
+            ),""";
+          }
+        });
+      }
+    });
+    return content;
+  }
+
   String generateShouldBeDeleted() {
     String content = 'false';
     collection.fields.forEach((fieldName, field) {
@@ -160,6 +178,14 @@ String generateCollection(
         ${firestoreCreateFields()}
       ];
     }
+
+
+    @override
+    List<Sum> get sum =>
+      [
+        ${sum()}
+      ];
+
 
 
     @override

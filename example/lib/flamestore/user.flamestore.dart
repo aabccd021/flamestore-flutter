@@ -70,6 +70,9 @@ class UserDocument extends Document {
   }
 
   @override
+  List<Sum> get sum => [];
+
+  @override
   bool get shouldBeDeleted => false;
 
   @override
@@ -103,7 +106,4 @@ class UserDocument extends Document {
       tweetsCount: tweetsCount ?? data.tweetsCount,
     );
   }
-
-  @override
-  List<Sum> get sum => [];
 }

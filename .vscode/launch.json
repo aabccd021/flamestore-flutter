@@ -5,25 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "flamestore",
-      "request": "launch",
-      "type": "dart"
-    },
-    {
       "name": "flamestore-generate",
       "request": "launch",
       "type": "dart",
       "program": "bin/generate.dart",
-      "args": [
-        "--output-path",
-        "example/lib/flamestore",
-      ],
+      "cwd": "${workspaceFolder}/functions",
+      // "args": [
+      //   "--output-path",
+      //   "lib/flamestore",
+      // ],
     },
-    {
-      "name": "flamestore_example",
-      "cwd": "flamestore_example",
-      "request": "launch",
-      "type": "dart"
-    }
   ]
 }

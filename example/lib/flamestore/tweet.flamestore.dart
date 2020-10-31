@@ -78,6 +78,9 @@ class TweetDocument extends Document {
   }
 
   @override
+  List<Sum> get sum => [];
+
+  @override
   bool get shouldBeDeleted => false;
 
   @override
@@ -113,7 +116,4 @@ class TweetDocument extends Document {
       creationTime: creationTime ?? data.creationTime,
     );
   }
-
-  @override
-  List<Sum> get sum => [];
 }
