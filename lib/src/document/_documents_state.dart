@@ -42,13 +42,16 @@ class _DocumentsState {
         final valueDiff = newDocument.toDataMap()[sum.field] - oldValue;
         final oldSumDocument = _map[sumDocumentKey].value;
         final oldSumDocumentMap = oldSumDocument.toDataMap();
-        final newSumValue = oldSumDocumentMap[sum.sumField] + valueDiff;
-        final newSumDocument = oldSumDocument.fromMap({
-          ...oldSumDocumentMap,
-          sum.sumField: newSumValue,
-        });
-        newSumDocument.reference = oldSumDocument.reference;
-        _map[sumDocumentKey].add(newSumDocument);
+        final oldSumValue = oldSumDocumentMap[sum.sumField];
+        if (oldSumValue != null) {
+          final newSumValue = oldSumValue + valueDiff;
+          final newSumDocument = oldSumDocument.fromMap({
+            ...oldSumDocumentMap,
+            sum.sumField: newSumValue,
+          });
+          newSumDocument.reference = oldSumDocument.reference;
+          _map[sumDocumentKey].add(newSumDocument);
+        }
       }
     });
 
@@ -60,13 +63,16 @@ class _DocumentsState {
           isDocNew) {
         final oldCountDocument = _map[countDocumentKey].value;
         final oldCountDocumentMap = oldCountDocument.toDataMap();
-        final newCountValue = oldCountDocumentMap[count.countField] + 1;
-        final newCountDocument = oldCountDocument.fromMap({
-          ...oldCountDocumentMap,
-          count.countField: newCountValue,
-        });
-        newCountDocument.reference = oldCountDocument.reference;
-        _map[countDocumentKey].add(newCountDocument);
+        final oldCountValue = oldCountDocumentMap[count.countField];
+        if (oldCountValue != null) {
+          final newCountValue = oldCountValue + 1;
+          final newCountDocument = oldCountDocument.fromMap({
+            ...oldCountDocumentMap,
+            count.countField: newCountValue,
+          });
+          newCountDocument.reference = oldCountDocument.reference;
+          _map[countDocumentKey].add(newCountDocument);
+        }
       }
     });
   }
@@ -86,13 +92,16 @@ class _DocumentsState {
         final oldValue = document.toDataMap()[sum.field];
         final oldSumDocument = _map[sumDocumentKey].value;
         final oldSumDocumentMap = oldSumDocument.toDataMap();
-        final newSumValue = oldSumDocumentMap[sum.sumField] - oldValue;
-        final newSumDocument = oldSumDocument.fromMap({
-          ...oldSumDocumentMap,
-          sum.sumField: newSumValue,
-        });
-        newSumDocument.reference = oldSumDocument.reference;
-        _map[sumDocumentKey].add(newSumDocument);
+        final oldSumValue = oldSumDocumentMap[sum.sumField];
+        if (oldSumValue != null) {
+          final newSumValue = oldSumValue - oldValue;
+          final newSumDocument = oldSumDocument.fromMap({
+            ...oldSumDocumentMap,
+            sum.sumField: newSumValue,
+          });
+          newSumDocument.reference = oldSumDocument.reference;
+          _map[sumDocumentKey].add(newSumDocument);
+        }
       }
     });
 
@@ -102,13 +111,16 @@ class _DocumentsState {
       if (countDocumentKey != null && _map.containsKey(countDocumentKey)) {
         final oldCountDocument = _map[countDocumentKey].value;
         final oldCountDocumentMap = oldCountDocument.toDataMap();
-        final newCountValue = oldCountDocumentMap[count.countField] - 1;
-        final newCountDocument = oldCountDocument.fromMap({
-          ...oldCountDocumentMap,
-          count.countField: newCountValue,
-        });
-        newCountDocument.reference = oldCountDocument.reference;
-        _map[countDocumentKey].add(newCountDocument);
+        final oldCountValue = oldCountDocumentMap[count.countField];
+        if (oldCountValue != null) {
+          final newCountValue = oldCountValue - 1;
+          final newCountDocument = oldCountDocument.fromMap({
+            ...oldCountDocumentMap,
+            count.countField: newCountValue,
+          });
+          newCountDocument.reference = oldCountDocument.reference;
+          _map[countDocumentKey].add(newCountDocument);
+        }
       }
     });
   }
