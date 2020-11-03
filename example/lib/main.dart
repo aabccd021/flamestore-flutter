@@ -1,16 +1,14 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flamestore/flamestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'flamestore/like.flamestore.dart';
-import 'flamestore/tweet.flamestore.dart';
-import 'flamestore/user.flamestore.dart';
+import 'flamestore/flamestore.g.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Flamestore flamestore;
-  UserDocument currentUser;
+  User currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -68,18 +66,19 @@ class _MyHomePageState extends State<MyHomePage> {
               : FlatButton(child: Text('Logout'), onPressed: _signOut)
         ],
       ),
-      body: DocumentListBuilder<TweetDocument, TweetList>(
+      body: DocumentListBuilder<Tweet, TweetList>(
         TweetList(),
         builder: (_, docs, hasMore) {
           return ListView(
             children: [
+              if (currentUser != null) TweetCount(currentUser),
               if (currentUser != null) TweetForm(user: currentUser),
               RaisedButton(
                 onPressed: () => flamestore.refreshList(TweetList()),
                 child: Text('Refresh List'),
               ),
               ...docs
-                  .map((doc) => Tweet(tweet: doc, user: currentUser))
+                  .map((doc) => TweetWidget(tweet: doc, user: currentUser))
                   .toList(),
               RaisedButton(
                 onPressed:
@@ -114,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final firebaseCurrentUser = FirebaseAuth.instance.currentUser;
     assert(user.uid == firebaseCurrentUser.uid);
     final userDocument = await flamestore.createDocumentIfAbsent(
-      UserDocument(
+      User(
         uid: firebaseCurrentUser.uid,
         userName: 'user' + Random().nextInt(100000).toString(),
       ),
@@ -123,19 +122,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class Tweet extends StatefulWidget {
-  const Tweet({
+class TweetCount extends StatelessWidget {
+  const TweetCount(this.keyUser, {Key key}) : super(key: key);
+
+  final User keyUser;
+
+  @override
+  Widget build(BuildContext context) {
+    return DocumentBuilder(
+      keyUser,
+      builder: (_, user) => Text('TweetCount: ${user.data.tweetsCount}'),
+    );
+  }
+}
+
+class TweetWidget extends StatefulWidget {
+  const TweetWidget({
     @required this.tweet,
     @required this.user,
   });
-  final TweetDocument tweet;
-  final UserDocument user;
+  final Tweet tweet;
+  final User user;
 
   @override
   _TweetState createState() => _TweetState();
 }
 
-class _TweetState extends State<Tweet> {
+class _TweetState extends State<TweetWidget> {
   @override
   Widget build(BuildContext context) {
     final data = widget.tweet?.data;
@@ -147,7 +160,17 @@ class _TweetState extends State<Tweet> {
           Text('likes: ${data?.likesSum}'),
           Text('creationTime: ${data?.creationTime}'),
           if (widget.user != null)
-            LikeButton(user: widget.user, tweet: widget.tweet),
+            Row(
+              children: [
+                LikeButton(user: widget.user, tweet: widget.tweet),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    Flamestore.instance.deleteDocument(widget.tweet);
+                  },
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -161,14 +184,14 @@ class LikeButton extends StatelessWidget {
     Flamestore flamestore,
   }) : flamestore = flamestore ?? Flamestore.instance;
 
-  final UserDocument user;
-  final TweetDocument tweet;
+  final User user;
+  final Tweet tweet;
   final Flamestore flamestore;
 
   @override
   Widget build(BuildContext context) {
-    final like = LikeDocument(user: user?.reference, tweet: tweet?.reference);
-    return DocumentBuilder<LikeDocument>(
+    final like = Like(user: user?.reference, tweet: tweet?.reference);
+    return DocumentBuilder<Like>(
       like,
       allowNull: true,
       builder: (context, document) {
@@ -200,7 +223,7 @@ class TweetForm extends StatefulWidget {
     Flamestore flamestore,
   }) : _flamestore = flamestore ?? Flamestore.instance;
 
-  final UserDocument user;
+  final User user;
   final Flamestore _flamestore;
 
   @override
@@ -239,7 +262,7 @@ class _TweetFormState extends State<TweetForm> {
 
   void onSubmitPressed() {
     widget._flamestore.createDocument(
-      TweetDocument(
+      Tweet(
         user: widget.user.reference,
         userName: widget.user.data.userName,
         tweetText: tweet,
@@ -249,9 +272,9 @@ class _TweetFormState extends State<TweetForm> {
   }
 }
 
-class TweetList extends DocumentList<TweetDocument> {
+class TweetList extends DocumentList<Tweet> {
   @override
-  TweetDocument get document => TweetDocument();
+  Tweet get document => Tweet();
 
   @override
   List<Object> get props => [];

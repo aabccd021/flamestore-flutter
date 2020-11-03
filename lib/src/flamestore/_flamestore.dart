@@ -75,6 +75,7 @@ class _Flamestore {
   }
 
   Future<void> deleteDocument<T extends Document>(T document) {
+    _listManager.deleteReference(document.reference);
     return _documentManager.delete(document);
   }
 

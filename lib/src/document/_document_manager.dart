@@ -24,7 +24,6 @@ class _DocumentManager {
       debounce,
       () async {
         final oldDocument = await get(document, true);
-        // TODO: update count, sum, syncfrom
         if (oldDocument == null) {
           return create(document);
         }

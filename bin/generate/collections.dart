@@ -106,6 +106,23 @@ String generateCollection(
     return content;
   }
 
+  String count() {
+    String content = '';
+    schema.collections.forEach((cName, c) {
+      if (cName != rawColName) {
+        c.fields.forEach((fName, f) {
+          if (f.count != null && f.count.collection == rawColName) {
+            content += """Count(
+              countDocument: data.${f.count.reference},
+              countField: '$fName',
+            ),""";
+          }
+        });
+      }
+    });
+    return content;
+  }
+
   String generateShouldBeDeleted() {
     String content = 'false';
     collection.fields.forEach((fieldName, field) {
@@ -132,27 +149,27 @@ String generateCollection(
   }
 
   return """
-  class _${colName}DocumentData {
-    _${colName}DocumentData({
+  class _${colName}Data {
+    _${colName}Data({
       ${collection.fields.keys.map((e) => 'this.$e,').join('')}
     });
     ${generateFinalTypeFieldName()}
   }
-  class ${colName}Document extends Document{
-    ${colName}Document({
+  class ${colName} extends Document{
+    ${colName}({
       ${generateRequiredTypeFieldName()}
-    }): data =_${colName}DocumentData(
+    }): data =_${colName}Data(
       ${collection.fields.keys.map((e) => '$e:$e,').join('')}
     );
 
-    final _${colName}DocumentData data;
+    final _${colName}Data data;
 
     @override
     String get collectionName => '$rawColName';
 
     @override
-    ${colName}Document fromMap(Map<String, dynamic> data) {
-      return ${colName}Document(
+    ${colName} fromMap(Map<String, dynamic> data) {
+      return ${colName}(
         ${generateFromMap()}
       );
     }
@@ -181,10 +198,17 @@ String generateCollection(
 
 
     @override
-    List<Sum> get sum =>
+    List<Sum> get sums =>
       [
         ${sum()}
       ];
+
+    @override
+    List<Count> get counts =>
+      [
+        ${count()}
+      ];
+
 
 
 
@@ -195,24 +219,24 @@ String generateCollection(
     List<String> get keys => [${generateKeys()}];
 
     @override
-    ${colName}Document fromSnapshot(DocumentSnapshot snapshot){
-      return super.fromSnapshot(snapshot) as ${colName}Document;
+    ${colName} fromSnapshot(DocumentSnapshot snapshot){
+      return super.fromSnapshot(snapshot) as ${colName};
     }
 
     @override
-    ${colName}Document withDefaultValue(){
-      return super.withDefaultValue() as ${colName}Document;
+    ${colName} withDefaultValue(){
+      return super.withDefaultValue() as ${colName};
     }
 
     @override
-    ${colName}Document mergeDataWith(Document other){
-      return super.mergeDataWith(other) as ${colName}Document;
+    ${colName} mergeDataWith(Document other){
+      return super.mergeDataWith(other) as ${colName};
     }
 
-    ${colName}Document copyWith({
+    ${colName} copyWith({
       ${generateTypeFieldName()}
     }) {
-      return ${colName}Document(
+      return ${colName}(
         ${collection.fields.keys.map((e) => '$e: $e ?? data.$e,').join()}
       );
     }

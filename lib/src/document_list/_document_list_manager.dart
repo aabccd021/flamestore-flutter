@@ -51,10 +51,13 @@ class _DocumentListManager {
   ) {
     for (final list in lists) {
       final oldReferences = _state[list].value.references;
-      _updateState(
-        list,
-        references: [reference, ...oldReferences],
-      );
+      // avoid duplicate references in list
+      if (!oldReferences.map((ref) => ref.path).contains(reference.path)) {
+        _updateState(
+          list,
+          references: [reference, ...oldReferences],
+        );
+      }
     }
   }
 

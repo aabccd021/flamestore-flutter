@@ -35,21 +35,38 @@ class _DocumentsState {
     _map[key].add(newDocument);
 
     ///sum
-    newDocument.sum.forEach((sumElement) {
-      final sumDocumentKey = sumElement.sumDocument?.path;
+    newDocument.sums.forEach((sum) {
+      final sumDocumentKey = sum.sumDocument?.path;
       if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
-        final oldValue =
-            isDocNew ? 0 : oldDocument.toDataMap()[sumElement.field];
-        final valueDiff = newDocument.toDataMap()[sumElement.field] - oldValue;
+        final oldValue = isDocNew ? 0 : oldDocument.toDataMap()[sum.field];
+        final valueDiff = newDocument.toDataMap()[sum.field] - oldValue;
         final oldSumDocument = _map[sumDocumentKey].value;
         final oldSumDocumentMap = oldSumDocument.toDataMap();
-        final newSumValue = oldSumDocumentMap[sumElement.sumField] + valueDiff;
+        final newSumValue = oldSumDocumentMap[sum.sumField] + valueDiff;
         final newSumDocument = oldSumDocument.fromMap({
           ...oldSumDocumentMap,
-          sumElement.sumField: newSumValue,
+          sum.sumField: newSumValue,
         });
         newSumDocument.reference = oldSumDocument.reference;
         _map[sumDocumentKey].add(newSumDocument);
+      }
+    });
+
+    ///count
+    newDocument.counts.forEach((count) {
+      final countDocumentKey = count.countDocument?.path;
+      if (countDocumentKey != null &&
+          _map.containsKey(countDocumentKey) &&
+          isDocNew) {
+        final oldCountDocument = _map[countDocumentKey].value;
+        final oldCountDocumentMap = oldCountDocument.toDataMap();
+        final newCountValue = oldCountDocumentMap[count.countField] + 1;
+        final newCountDocument = oldCountDocument.fromMap({
+          ...oldCountDocumentMap,
+          count.countField: newCountValue,
+        });
+        newCountDocument.reference = oldCountDocument.reference;
+        _map[countDocumentKey].add(newCountDocument);
       }
     });
   }
@@ -63,19 +80,35 @@ class _DocumentsState {
     );
 
     //sum
-    document.sum.forEach((sumElement) {
-      final sumDocumentKey = sumElement.sumDocument?.path;
+    document.sums.forEach((sum) {
+      final sumDocumentKey = sum.sumDocument?.path;
       if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
-        final oldValue = document.toDataMap()[sumElement.field];
+        final oldValue = document.toDataMap()[sum.field];
         final oldSumDocument = _map[sumDocumentKey].value;
         final oldSumDocumentMap = oldSumDocument.toDataMap();
-        final newSumValue = oldSumDocumentMap[sumElement.sumField] - oldValue;
+        final newSumValue = oldSumDocumentMap[sum.sumField] - oldValue;
         final newSumDocument = oldSumDocument.fromMap({
           ...oldSumDocumentMap,
-          sumElement.sumField: newSumValue,
+          sum.sumField: newSumValue,
         });
         newSumDocument.reference = oldSumDocument.reference;
         _map[sumDocumentKey].add(newSumDocument);
+      }
+    });
+
+    ///count
+    document.counts.forEach((count) {
+      final countDocumentKey = count.countDocument?.path;
+      if (countDocumentKey != null && _map.containsKey(countDocumentKey)) {
+        final oldCountDocument = _map[countDocumentKey].value;
+        final oldCountDocumentMap = oldCountDocument.toDataMap();
+        final newCountValue = oldCountDocumentMap[count.countField] - 1;
+        final newCountDocument = oldCountDocument.fromMap({
+          ...oldCountDocumentMap,
+          count.countField: newCountValue,
+        });
+        newCountDocument.reference = oldCountDocument.reference;
+        _map[countDocumentKey].add(newCountDocument);
       }
     });
   }

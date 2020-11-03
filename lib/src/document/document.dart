@@ -32,7 +32,10 @@ abstract class Document {
   set reference(DocumentReference reference) => _reference = reference;
 
   @protected
-  List<Sum> get sum;
+  List<Sum> get sums;
+
+  @protected
+  List<Count> get counts;
 
   set id(String id) => _id = id;
 
