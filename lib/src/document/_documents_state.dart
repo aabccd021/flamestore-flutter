@@ -29,11 +29,15 @@ class _DocumentsState {
       _mapStream.add(_map..[key] = BehaviorSubject<Document>.seeded(null));
     }
 
+    final oldDocument = _map[key].value;
+
+    ///
+    _map[key].add(newDocument);
+
     ///sum
     newDocument.sum.forEach((sumElement) {
       final sumDocumentKey = sumElement.sumDocument?.path;
       if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
-        final oldDocument = _map[key].value;
         final oldValue =
             isDocNew ? 0 : oldDocument.toDataMap()[sumElement.field];
         final valueDiff = newDocument.toDataMap()[sumElement.field] - oldValue;
@@ -48,15 +52,31 @@ class _DocumentsState {
         _map[sumDocumentKey].add(newSumDocument);
       }
     });
-
-    ///
-    _map[key].add(newDocument);
   }
 
   void delete<T extends Document>(T document) {
     final key = document.reference.path;
-    _mapStream.add(_map
-      ..[key].close()
-      ..remove(key));
+    _mapStream.add(
+      _map
+        ..[key].close()
+        ..remove(key),
+    );
+
+    //sum
+    document.sum.forEach((sumElement) {
+      final sumDocumentKey = sumElement.sumDocument?.path;
+      if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
+        final oldValue = document.toDataMap()[sumElement.field];
+        final oldSumDocument = _map[sumDocumentKey].value;
+        final oldSumDocumentMap = oldSumDocument.toDataMap();
+        final newSumValue = oldSumDocumentMap[sumElement.sumField] - oldValue;
+        final newSumDocument = oldSumDocument.fromMap({
+          ...oldSumDocumentMap,
+          sumElement.sumField: newSumValue,
+        });
+        newSumDocument.reference = oldSumDocument.reference;
+        _map[sumDocumentKey].add(newSumDocument);
+      }
+    });
   }
 }
