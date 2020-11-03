@@ -18,7 +18,7 @@ class _DocumentManager {
   }
 
   void set<T extends Document>(T document, {Duration debounce}) async {
-    _state.update<T>(document);
+    _state.update<T>(document,updateAggregate: true);
     EasyDebounce.debounce(
       document.reference.path,
       debounce,

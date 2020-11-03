@@ -19,7 +19,10 @@ class _DocumentsState {
         .shareValue();
   }
 
-  void update<T extends Document>(T newDocument) {
+  void update<T extends Document>(
+    T newDocument, {
+    bool updateAggregate = false,
+  }) {
     final key = newDocument?.reference?.path;
     if (key == null) {
       return;
@@ -34,47 +37,49 @@ class _DocumentsState {
     ///
     _map[key].add(newDocument);
 
-    ///sum
-    newDocument.sums.forEach((sum) {
-      final sumDocumentKey = sum.sumDocument?.path;
-      if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
-        final oldValue = isDocNew ? 0 : oldDocument.toDataMap()[sum.field];
-        final valueDiff = newDocument.toDataMap()[sum.field] - oldValue;
-        final oldSumDocument = _map[sumDocumentKey].value;
-        final oldSumDocumentMap = oldSumDocument.toDataMap();
-        final oldSumValue = oldSumDocumentMap[sum.sumField];
-        if (oldSumValue != null) {
-          final newSumValue = oldSumValue + valueDiff;
-          final newSumDocument = oldSumDocument.fromMap({
-            ...oldSumDocumentMap,
-            sum.sumField: newSumValue,
-          });
-          newSumDocument.reference = oldSumDocument.reference;
-          _map[sumDocumentKey].add(newSumDocument);
+    if (updateAggregate) {
+      ///sum
+      newDocument.sums.forEach((sum) {
+        final sumDocumentKey = sum.sumDocument?.path;
+        if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
+          final oldValue = isDocNew ? 0 : oldDocument.toDataMap()[sum.field];
+          final valueDiff = newDocument.toDataMap()[sum.field] - oldValue;
+          final oldSumDocument = _map[sumDocumentKey].value;
+          final oldSumDocumentMap = oldSumDocument.toDataMap();
+          final oldSumValue = oldSumDocumentMap[sum.sumField];
+          if (oldSumValue != null) {
+            final newSumValue = oldSumValue + valueDiff;
+            final newSumDocument = oldSumDocument.fromMap({
+              ...oldSumDocumentMap,
+              sum.sumField: newSumValue,
+            });
+            newSumDocument.reference = oldSumDocument.reference;
+            _map[sumDocumentKey].add(newSumDocument);
+          }
         }
-      }
-    });
+      });
 
-    ///count
-    newDocument.counts.forEach((count) {
-      final countDocumentKey = count.countDocument?.path;
-      if (countDocumentKey != null &&
-          _map.containsKey(countDocumentKey) &&
-          isDocNew) {
-        final oldCountDocument = _map[countDocumentKey].value;
-        final oldCountDocumentMap = oldCountDocument.toDataMap();
-        final oldCountValue = oldCountDocumentMap[count.countField];
-        if (oldCountValue != null) {
-          final newCountValue = oldCountValue + 1;
-          final newCountDocument = oldCountDocument.fromMap({
-            ...oldCountDocumentMap,
-            count.countField: newCountValue,
-          });
-          newCountDocument.reference = oldCountDocument.reference;
-          _map[countDocumentKey].add(newCountDocument);
+      ///count
+      newDocument.counts.forEach((count) {
+        final countDocumentKey = count.countDocument?.path;
+        if (countDocumentKey != null &&
+            _map.containsKey(countDocumentKey) &&
+            isDocNew) {
+          final oldCountDocument = _map[countDocumentKey].value;
+          final oldCountDocumentMap = oldCountDocument.toDataMap();
+          final oldCountValue = oldCountDocumentMap[count.countField];
+          if (oldCountValue != null) {
+            final newCountValue = oldCountValue + 1;
+            final newCountDocument = oldCountDocument.fromMap({
+              ...oldCountDocumentMap,
+              count.countField: newCountValue,
+            });
+            newCountDocument.reference = oldCountDocument.reference;
+            _map[countDocumentKey].add(newCountDocument);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   void delete<T extends Document>(T document) {
