@@ -5,6 +5,7 @@ class DocumentBuilder<T extends Document> extends StatefulWidget {
     this.document, {
     @required this.builder,
     this.allowNull = false,
+    this.fetchOnInit = true,
     Flamestore flamestore,
     Key key,
   })  : _flamestore = flamestore ?? Flamestore.instance,
@@ -14,6 +15,7 @@ class DocumentBuilder<T extends Document> extends StatefulWidget {
   final T document;
   final Widget Function(BuildContext context, T state) builder;
   final bool allowNull;
+  final bool fetchOnInit;
 
   @override
   _DocumentBuilderState<T> createState() => _DocumentBuilderState<T>();
@@ -23,7 +25,9 @@ class _DocumentBuilderState<T extends Document>
     extends State<DocumentBuilder<T>> {
   @override
   void initState() {
-    widget._flamestore.getDocument(widget.document);
+    if (widget.fetchOnInit) {
+      widget._flamestore.getDocument(widget.document);
+    }
     super.initState();
   }
 
