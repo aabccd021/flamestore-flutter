@@ -49,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     flamestore = widget._flamestore;
+    _signIn();
     super.initState();
   }
 

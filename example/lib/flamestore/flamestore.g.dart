@@ -20,6 +20,16 @@ class User extends Document {
     @required String uid,
     String userName,
     String bio,
+  }) : data = _UserData(
+          uid: uid,
+          userName: userName,
+          bio: bio,
+        );
+
+  User._({
+    String uid,
+    String userName,
+    String bio,
     int tweetsCount,
   }) : data = _UserData(
           uid: uid,
@@ -35,12 +45,11 @@ class User extends Document {
 
   @override
   User fromMap(Map<String, dynamic> data) {
-    return User(
-      uid: data['uid'],
-      userName: data['userName'],
-      bio: data['bio'],
-      tweetsCount: data['tweetsCount'],
-    );
+    return User._(
+        uid: data['uid'],
+        userName: data['userName'],
+        bio: data['bio'],
+        tweetsCount: data['tweetsCount']);
   }
 
   @override
@@ -102,7 +111,7 @@ class User extends Document {
     String bio,
     int tweetsCount,
   }) {
-    return User(
+    return User._(
       uid: uid ?? data.uid,
       userName: userName ?? data.userName,
       bio: bio ?? data.bio,
@@ -118,12 +127,14 @@ class _TweetData {
     this.tweetText,
     this.likesSum,
     this.creationTime,
+    this.hotness,
   });
   final DocumentReference user;
   final String userName;
   final String tweetText;
   final int likesSum;
   final DateTime creationTime;
+  final double hotness;
 }
 
 class Tweet extends Document {
@@ -131,14 +142,26 @@ class Tweet extends Document {
     DocumentReference user,
     String userName,
     String tweetText,
+  }) : data = _TweetData(
+          user: user,
+          userName: userName,
+          tweetText: tweetText,
+        );
+
+  Tweet._({
+    DocumentReference user,
+    String userName,
+    String tweetText,
     int likesSum,
     DateTime creationTime,
+    double hotness,
   }) : data = _TweetData(
           user: user,
           userName: userName,
           tweetText: tweetText,
           likesSum: likesSum,
           creationTime: creationTime,
+          hotness: hotness,
         );
 
   final _TweetData data;
@@ -148,15 +171,15 @@ class Tweet extends Document {
 
   @override
   Tweet fromMap(Map<String, dynamic> data) {
-    return Tweet(
-      user: data['user'],
-      userName: data['userName'],
-      tweetText: data['tweetText'],
-      likesSum: data['likesSum'],
-      creationTime: data['creationTime'] is DateTime
-          ? data['creationTime']
-          : data['creationTime']?.toDate(),
-    );
+    return Tweet._(
+        user: data['user'],
+        userName: data['userName'],
+        tweetText: data['tweetText'],
+        likesSum: data['likesSum'],
+        creationTime: data['creationTime'] is DateTime
+            ? data['creationTime']
+            : data['creationTime']?.toDate(),
+        hotness: data['hotness']?.toDouble());
   }
 
   @override
@@ -175,6 +198,7 @@ class Tweet extends Document {
       'tweetText': data.tweetText,
       'likesSum': data.likesSum,
       'creationTime': data.creationTime,
+      'hotness': data.hotness,
     };
   }
 
@@ -183,6 +207,7 @@ class Tweet extends Document {
     return [
       'user',
       'tweetText',
+      'hotness',
     ];
   }
 
@@ -224,13 +249,15 @@ class Tweet extends Document {
     String tweetText,
     int likesSum,
     DateTime creationTime,
+    double hotness,
   }) {
-    return Tweet(
+    return Tweet._(
       user: user ?? data.user,
       userName: userName ?? data.userName,
       tweetText: tweetText ?? data.tweetText,
       likesSum: likesSum ?? data.likesSum,
       creationTime: creationTime ?? data.creationTime,
+      hotness: hotness ?? data.hotness,
     );
   }
 }
@@ -257,6 +284,16 @@ class Like extends Document {
           tweet: tweet,
         );
 
+  Like._({
+    int likeValue,
+    DocumentReference user,
+    DocumentReference tweet,
+  }) : data = _LikeData(
+          likeValue: likeValue,
+          user: user,
+          tweet: tweet,
+        );
+
   final _LikeData data;
 
   @override
@@ -264,11 +301,8 @@ class Like extends Document {
 
   @override
   Like fromMap(Map<String, dynamic> data) {
-    return Like(
-      likeValue: data['likeValue'],
-      user: data['user'],
-      tweet: data['tweet'],
-    );
+    return Like._(
+        likeValue: data['likeValue'], user: data['user'], tweet: data['tweet']);
   }
 
   @override
@@ -335,7 +369,7 @@ class Like extends Document {
     DocumentReference user,
     DocumentReference tweet,
   }) {
-    return Like(
+    return Like._(
       likeValue: likeValue ?? data.likeValue,
       user: user ?? data.user,
       tweet: tweet ?? data.tweet,

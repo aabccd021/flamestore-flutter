@@ -21,14 +21,43 @@ String generateCollection(
     return content;
   }
 
-  String generateRequiredTypeFieldName() {
-    String content = '';
-    collection.fields.forEach((fieldName, field) {
-      final fieldRequired = field?.isKey == true ? '@required' : '';
-      content +=
-          '$fieldRequired ${field.toStringFromSchema(schema, collection)} $fieldName,\n';
-    });
-    return content;
+  bool isFieldAssignable(Field field) {
+    bool isComputed = field?.isComputed ?? false;
+    bool isServerTimestamp = field?.type?.timestamp?.serverTimestamp ?? false;
+    bool isSum = field?.sum != null;
+    bool isCount = field?.count != null;
+    return !isComputed && !isServerTimestamp && !isSum && !isCount;
+  }
+
+  bool isFieldRequired(Field field) {
+    bool isKey = field?.isKey ?? false;
+    // bool isReference = field?.type?.path != null;
+    return isKey;
+    // return isKey || isReference;
+  }
+
+  final assignableFields = Map.from(collection.fields)
+    ..removeWhere((_, field) => !isFieldAssignable(field));
+
+  String generatePublicConstructorFieldName() {
+    return assignableFields
+        .map((fieldName, field) {
+          final fieldRequired = isFieldRequired(field) ? '@required' : '';
+          final fieldString = field.toStringFromSchema(schema, collection);
+          return MapEntry(fieldName, '$fieldRequired $fieldString $fieldName,');
+        })
+        .values
+        .join('\n');
+  }
+
+  String generatePrivateConstructorFieldName() {
+    return collection.fields
+        .map((fieldName, field) {
+          final fieldString = field.toStringFromSchema(schema, collection);
+          return MapEntry(fieldName, '$fieldString $fieldName,');
+        })
+        .values
+        .join('\n');
   }
 
   String generateTypeFieldName() {
@@ -40,17 +69,23 @@ String generateCollection(
     return content;
   }
 
+  String assignString(String fieldName, Field field) {
+    if (field?.type?.timestamp != null) {
+      return "data['$fieldName'] is DateTime ? data['$fieldName'] : data['$fieldName']?.toDate()";
+    } else if (field?.type?.float != null) {
+      return "data['$fieldName']?.toDouble()";
+    }
+    return "data['$fieldName']";
+  }
+
   String generateFromMap() {
-    String content = '';
-    collection.fields.forEach((fieldName, field) {
-      if (field?.type?.timestamp != null) {
-        content +=
-            "$fieldName: data['$fieldName'] is DateTime ? data['$fieldName'] : data['$fieldName']?.toDate(),\n";
-      } else {
-        content += "$fieldName: data['$fieldName'],\n";
-      }
-    });
-    return content;
+    return collection.fields
+        .map((fieldName, field) {
+          final assign = assignString(fieldName, field);
+          return MapEntry(fieldName, "$fieldName: $assign");
+        })
+        .values
+        .join(',');
   }
 
   String generateWithDefaultValue() {
@@ -157,7 +192,13 @@ String generateCollection(
   }
   class ${colName} extends Document{
     ${colName}({
-      ${generateRequiredTypeFieldName()}
+      ${generatePublicConstructorFieldName()}
+    }): data =_${colName}Data(
+      ${assignableFields.keys.map((e) => '$e:$e,').join('')}
+    );
+
+    ${colName}._({
+      ${generatePrivateConstructorFieldName()}
     }): data =_${colName}Data(
       ${collection.fields.keys.map((e) => '$e:$e,').join('')}
     );
@@ -169,7 +210,7 @@ String generateCollection(
 
     @override
     ${colName} fromMap(Map<String, dynamic> data) {
-      return ${colName}(
+      return ${colName}._(
         ${generateFromMap()}
       );
     }
@@ -236,7 +277,7 @@ String generateCollection(
     ${colName} copyWith({
       ${generateTypeFieldName()}
     }) {
-      return ${colName}(
+      return ${colName}._(
         ${collection.fields.keys.map((e) => '$e: $e ?? data.$e,').join()}
       );
     }

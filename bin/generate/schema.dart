@@ -27,6 +27,7 @@ class Field {
   bool isKey;
   bool isUnique;
   bool isOptional;
+  bool isComputed;
   Sum sum;
   Count count;
   SyncFrom syncFrom;
@@ -35,6 +36,7 @@ class Field {
     isKey = json['isKey'];
     isUnique = json['isUnique'];
     isOptional = json['isOptional'];
+    isComputed = json['isComputed'];
     type = json['type'] != null ? FieldType.fromJson(json['type']) : null;
     sum = json['sum'] != null ? Sum.fromJson(json['sum']) : null;
     count = json['count'] != null ? Count.fromJson(json['count']) : null;
@@ -72,6 +74,7 @@ class FieldType {
   DatetimeField timestamp;
   ReferenceField path;
   IntField int;
+  IntField float;
 
   FieldType.fromJson(Map<String, dynamic> json) {
     string =
@@ -81,6 +84,7 @@ class FieldType {
         : null;
     path = json['path'] != null ? ReferenceField.fromJson(json['path']) : null;
     int = json['int'] != null ? IntField.fromJson(json['int']) : null;
+    float = json['float'] != null ? IntField.fromJson(json['float']) : null;
   }
 
   @override
@@ -96,6 +100,9 @@ class FieldType {
     }
     if (int != null) {
       return 'int';
+    }
+    if (float != null) {
+      return 'double';
     }
     return '';
   }
