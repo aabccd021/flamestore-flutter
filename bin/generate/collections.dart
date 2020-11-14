@@ -16,34 +16,33 @@ String generateCollection(
     String content = '';
     collection.fields.forEach((fieldName, field) {
       content +=
-          'final ${field.toStringFromSchema(schema, collection)} $fieldName;\n';
+          'final ${field.type.toStringFromSchema(schema, collection)} $fieldName;\n';
     });
     return content;
   }
 
   bool isFieldAssignable(Field field) {
-    bool isComputed = field?.isComputed ?? false;
+    bool isComputed = field?.property?.isComputed ?? false;
     bool isServerTimestamp = field?.type?.timestamp?.serverTimestamp ?? false;
-    bool isSum = field?.sum != null;
-    bool isCount = field?.count != null;
+    bool isSum = field?.type?.sum != null;
+    bool isCount = field?.type?.count != null;
     return !isComputed && !isServerTimestamp && !isSum && !isCount;
   }
 
   bool isFieldRequired(Field field) {
-    bool isKey = field?.isKey ?? false;
-    // bool isReference = field?.type?.path != null;
-    return isKey;
-    // return isKey || isReference;
+    bool pathIsKey = field?.type?.path?.isKey ?? false;
+    bool stringIsKey = field?.type?.string?.isKey ?? false;
+    return pathIsKey || stringIsKey;
   }
 
-  final assignableFields = Map.from(collection.fields)
+  final assignableFields = Map<String, Field>.from(collection.fields)
     ..removeWhere((_, field) => !isFieldAssignable(field));
 
   String generatePublicConstructorFieldName() {
     return assignableFields
         .map((fieldName, field) {
           final fieldRequired = isFieldRequired(field) ? '@required' : '';
-          final fieldString = field.toStringFromSchema(schema, collection);
+          final fieldString = field.type.toStringFromSchema(schema, collection);
           return MapEntry(fieldName, '$fieldRequired $fieldString $fieldName,');
         })
         .values
@@ -53,7 +52,7 @@ String generateCollection(
   String generatePrivateConstructorFieldName() {
     return collection.fields
         .map((fieldName, field) {
-          final fieldString = field.toStringFromSchema(schema, collection);
+          final fieldString = field.type.toStringFromSchema(schema, collection);
           return MapEntry(fieldName, '$fieldString $fieldName,');
         })
         .values
@@ -64,7 +63,7 @@ String generateCollection(
     String content = '';
     collection.fields.forEach((fieldName, field) {
       content +=
-          '${field.toStringFromSchema(schema, collection)} $fieldName,\n';
+          '${field.type.toStringFromSchema(schema, collection)} $fieldName,\n';
     });
     return content;
   }
@@ -92,7 +91,7 @@ String generateCollection(
     String content = '';
     collection.fields.forEach((fieldName, field) {
       String value = '';
-      if (field.sum != null || field.count != null) {
+      if (field.type.sum != null || field.type.count != null) {
         value = '0';
       } else if (field?.type?.timestamp?.serverTimestamp == true) {
         value = 'DateTime.now()';
@@ -115,7 +114,11 @@ String generateCollection(
   String firestoreCreateFields() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
-      if (field.type != null &&
+      if ((field.type.int != null ||
+              field.type.string != null ||
+              field.type.path != null ||
+              field.type.float != null ||
+              field.type.timestamp != null) &&
           field?.type?.timestamp?.serverTimestamp == null) {
         content += "'$fieldName',";
       }
@@ -128,10 +131,10 @@ String generateCollection(
     schema.collections.forEach((cName, c) {
       if (cName != rawColName) {
         c.fields.forEach((fName, f) {
-          if (f.sum != null && f.sum.collection == rawColName) {
+          if (f.type.sum != null && f.type.sum.collection == rawColName) {
             content += """Sum(
-              field: '${f.sum.field}',
-              sumDocument: data.${f.sum.reference},
+              field: '${f.type.sum.field}',
+              sumDocument: data.${f.type.sum.reference},
               sumField: '$fName',
             ),""";
           }
@@ -146,9 +149,9 @@ String generateCollection(
     schema.collections.forEach((cName, c) {
       if (cName != rawColName) {
         c.fields.forEach((fName, f) {
-          if (f.count != null && f.count.collection == rawColName) {
+          if (f.type.count != null && f.type.count.collection == rawColName) {
             content += """Count(
-              countDocument: data.${f.count.reference},
+              countDocument: data.${f.type.count.reference},
               countField: '$fName',
             ),""";
           }
@@ -172,12 +175,10 @@ String generateCollection(
   String generateKeys() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
-      if (field?.isKey != null) {
-        if (field?.type?.string != null) {
-          content += "data.$fieldName";
-        } else if (field?.type?.path != null) {
-          content += "data?.$fieldName?.id,";
-        }
+      if (field?.type?.string?.isKey != null) {
+        content += "data.$fieldName";
+      } else if (field?.type?.path?.isKey != null) {
+        content += "data?.$fieldName?.id,";
       }
     });
     return content;

@@ -24,37 +24,13 @@ class Collection {
 
 class Field {
   FieldType type;
-  bool isKey;
-  bool isUnique;
-  bool isOptional;
-  bool isComputed;
-  Sum sum;
-  Count count;
-  SyncFrom syncFrom;
+  FieldProperty property;
 
   Field.fromJson(Map<String, dynamic> json) {
-    isKey = json['isKey'];
-    isUnique = json['isUnique'];
-    isOptional = json['isOptional'];
-    isComputed = json['isComputed'];
-    type = json['type'] != null ? FieldType.fromJson(json['type']) : null;
-    sum = json['sum'] != null ? Sum.fromJson(json['sum']) : null;
-    count = json['count'] != null ? Count.fromJson(json['count']) : null;
-    syncFrom =
-        json['syncFrom'] != null ? SyncFrom.fromJson(json['syncFrom']) : null;
-  }
-
-  String toStringFromSchema(Schema schema, Collection thisCollection) {
-    if (toString() != '') {
-      return toString();
-    }
-    if (syncFrom != null) {
-      final targetCollection =
-          thisCollection.fields[syncFrom.reference].type.path.collection;
-      return schema.collections[targetCollection].fields[syncFrom.field]
-          .toString();
-    }
-    return '';
+    property = json['property'] != null
+        ? FieldProperty.fromJson(json['property'])
+        : null;
+    type = FieldType.fromJson(json['type']);
   }
 
   @override
@@ -62,10 +38,19 @@ class Field {
     if (type != null) {
       return type.toString();
     }
-    if (sum != null || count != null) {
-      return 'int';
-    }
     return '';
+  }
+}
+
+class FieldProperty {
+  bool isUnique;
+  bool isOptional;
+  bool isComputed;
+
+  FieldProperty.fromJson(Map<String, dynamic> json) {
+    isUnique = json['isUnique'];
+    isOptional = json['isOptional'];
+    isComputed = json['isComputed'];
   }
 }
 
@@ -75,6 +60,9 @@ class FieldType {
   ReferenceField path;
   IntField int;
   IntField float;
+  Sum sum;
+  Count count;
+  SyncFrom syncFrom;
 
   FieldType.fromJson(Map<String, dynamic> json) {
     string =
@@ -85,10 +73,13 @@ class FieldType {
     path = json['path'] != null ? ReferenceField.fromJson(json['path']) : null;
     int = json['int'] != null ? IntField.fromJson(json['int']) : null;
     float = json['float'] != null ? IntField.fromJson(json['float']) : null;
+    sum = json['sum'] != null ? Sum.fromJson(json['sum']) : null;
+    count = json['count'] != null ? Count.fromJson(json['count']) : null;
+    syncFrom =
+        json['syncFrom'] != null ? SyncFrom.fromJson(json['syncFrom']) : null;
   }
 
-  @override
-  String toString() {
+  String toStringFromSchema(Schema schema, Collection thisCollection) {
     if (string != null) {
       return 'String';
     }
@@ -104,6 +95,15 @@ class FieldType {
     if (float != null) {
       return 'double';
     }
+    if (syncFrom != null) {
+      final targetCollection =
+          thisCollection.fields[syncFrom.reference].type.path.collection;
+      return schema.collections[targetCollection].fields[syncFrom.field].type
+          .toStringFromSchema(schema, thisCollection);
+    }
+    if (sum != null || count != null) {
+      return 'int';
+    }
     return '';
   }
 }
@@ -112,11 +112,13 @@ class StringField {
   bool isOwnerUid;
   int minLength;
   int maxLength;
+  bool isKey;
 
   StringField.fromJson(Map<String, dynamic> json) {
     isOwnerUid = json['isOwnerUid'];
     minLength = json['minLength'];
     maxLength = json['maxLength'];
+    isKey = json['isKey'];
   }
 }
 
@@ -129,12 +131,14 @@ class DatetimeField {
 }
 
 class ReferenceField {
+  bool isKey;
   bool isOwnerDocRef;
   String collection;
 
   ReferenceField.fromJson(Map<String, dynamic> json) {
     isOwnerDocRef = json['isOwnerDocRef'];
     collection = json['collection'];
+    isKey = json['isKey'];
   }
 }
 
