@@ -7,7 +7,7 @@ class _DocumentListFirestoreAdapter {
 
   final FirebaseFirestore _firestore;
   Future<List<DocumentSnapshot>> get(
-    DocumentList list,
+    DocumentListKey list,
     DocumentSnapshot lastDocument,
   ) async {
     final collection = _firestore.collection(list.document.collectionName);

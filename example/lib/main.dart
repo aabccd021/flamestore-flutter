@@ -16,6 +16,7 @@ void main() async {
   await DotEnv().load();
   final debugFirestoreIP = DotEnv().env['DEBUG_FIRESTORE_IP'];
   final debugFirestoreIpPort = '$debugFirestoreIP:8080';
+  print(debugFirestoreIpPort);
   FirebaseFirestore.instance.settings = Settings(
     host: debugFirestoreIpPort,
     sslEnabled: false,
@@ -68,8 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: DocumentListBuilder(
-        TweetList(),
-        builder: (_, refs, hasMore) {
+        documentListKey: TweetList(),
+        onEmptyWidget: Text('empty'),
+        builder: (references, hasMore) {
           return ListView(
             children: [
               if (currentUser != null) TweetCount(currentUser),
@@ -78,9 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () => flamestore.refreshList(TweetList()),
                 child: Text('Refresh List'),
               ),
-              ...refs.map((ref) {
+              ...references.map((reference) {
                 return DocumentBuilder.fromReference(
-                  ref,
+                  reference: reference,
                   builder: (tweet) {
                     return TweetWidget(tweet: tweet, user: currentUser);
                   },
@@ -136,7 +138,7 @@ class TweetCount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DocumentBuilder(
-      keyUser,
+      keyDocument: keyUser,
       builder: (user) => Text('TweetCount: ${user.data.tweetsCount}'),
     );
   }
@@ -196,9 +198,9 @@ class LikeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final like = Like(user: user?.reference, tweet: tweet?.reference);
+    final keyLike = Like(user: user?.reference, tweet: tweet?.reference);
     return DocumentBuilder<Like>(
-      like,
+      keyDocument: keyLike,
       allowNull: true,
       builder: (likeDocument) {
         final likeValue = likeDocument?.data?.likeValue ?? 0;
@@ -210,7 +212,7 @@ class LikeButton extends StatelessWidget {
               icon: Icon(Icons.favorite),
               onPressed: () {
                 flamestore.setDocument(
-                  like.copyWith(likeValue: (likeValue + 1) % 5),
+                  keyLike.copyWith(likeValue: (likeValue + 1) % 5),
                   debounce: Duration(seconds: 5),
                 );
               },
@@ -278,7 +280,7 @@ class _TweetFormState extends State<TweetForm> {
   }
 }
 
-class TweetList extends DocumentList<Tweet> {
+class TweetList extends DocumentListKey<Tweet> {
   @override
   Tweet get document => Tweet();
 

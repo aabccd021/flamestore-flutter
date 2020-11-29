@@ -1,57 +1,43 @@
 part of '../../flamestore.dart';
 
 class DocumentListBuilder extends StatefulWidget {
-  DocumentListBuilder(
-    this.list, {
+  DocumentListBuilder({
+    @required this.documentListKey,
     @required this.builder,
+    this.onEmptyWidget,
     Flamestore flamestore,
     Key key,
   })  : _flamestore = flamestore ?? Flamestore.instance,
         super(key: key);
 
   final Widget Function(
-    BuildContext context,
     List<DocumentReference> document,
     bool hasMore,
   ) builder;
-  final DocumentList list;
+  final DocumentListKey documentListKey;
   final Flamestore _flamestore;
+  final Widget onEmptyWidget;
 
   @override
   _ListViewBuilderState createState() => _ListViewBuilderState();
 }
 
-class _ListViewBuilderState<T extends Document, V extends DocumentList<T>>
-    extends State<DocumentListBuilder> {
+class _ListViewBuilderState extends State<DocumentListBuilder> {
   @override
   void initState() {
-    widget._flamestore.getList<T, V>(widget.list);
+    widget._flamestore.getList(widget.documentListKey).then((value) => print('fetched'));
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentListState>(
-      stream: widget._flamestore._streamOfList(widget.list),
-      builder: (context, listSnapshot) {
-        if (listSnapshot.hasData) {
-          return widget.builder(
-            context,
-            listSnapshot?.data?.documents ?? [],
-            listSnapshot?.data?.hasMore ?? true,
-          );
-          // return StreamBuilder<List<T>>(
-          //   stream: listSnapshot.data.documents,
-          //   builder: (context, snapshot) {
-          //     return widget.builder(
-          //       context,
-          //       snapshot?.data ?? [],
-          //       listSnapshot.data.hasMore,
-          //     );
-          //   },
-          // );
+      stream: widget._flamestore._streamOfList(widget.documentListKey),
+      builder: (_, snapshot) {
+        if (snapshot.hasData) {
+          return widget.builder(snapshot.data.documents, snapshot.data.hasMore);
         }
-        return Container();
+        return widget.onEmptyWidget ?? Container();
       },
     );
   }

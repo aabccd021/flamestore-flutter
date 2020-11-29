@@ -7,20 +7,17 @@ class Flamestore {
 
   final _Flamestore _flamestore = _Flamestore();
 
-  Future<void> getList<T extends Document, V extends DocumentList<T>>(
-    DocumentList<T> list,
+  Future<void> getList<T extends Document, V extends DocumentListKey<T>>(
+    DocumentListKey<T> list,
   ) {
     return _flamestore.getList<T, V>(list);
   }
 
-  ValueStream<DocumentListState>
-      _streamOfList<T extends Document, V extends DocumentList<T>>(
-    V list,
-  ) {
+  ValueStream<DocumentListState> _streamOfList(DocumentListKey list) {
     return _flamestore.streamOfList(list);
   }
 
-  Future<void> refreshList(DocumentList list) {
+  Future<void> refreshList(DocumentListKey list) {
     return _flamestore.refreshList(list);
   }
 
@@ -34,14 +31,16 @@ class Flamestore {
     );
   }
 
-  Future<T> getDocument<T extends Document>(T document,
-      {bool fromCache = true}) {
+  Future<T> getDocument<T extends Document>(
+    T document, {
+    bool fromCache = true,
+  }) {
     return _flamestore.getDocument(document, fromCache: fromCache);
   }
 
   Future<T> createDocument<T extends Document>(
     T document, {
-    List<DocumentList<T>> appendOnLists,
+    List<DocumentListKey<T>> appendOnLists,
   }) {
     return _flamestore.createDocument(document, appendOnLists: appendOnLists);
   }

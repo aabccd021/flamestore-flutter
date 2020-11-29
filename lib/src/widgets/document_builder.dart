@@ -1,13 +1,14 @@
 part of '../../flamestore.dart';
 
 class DocumentBuilder<T extends Document> extends StatefulWidget {
-  DocumentBuilder(
-    this.document, {
+  DocumentBuilder({
+    @required this.keyDocument,
     @required this.builder,
     this.allowNull = false,
     this.fetchOnInit = true,
     this.onErrorWidget,
     this.onEmptyWidget,
+    this.onKeyNullWidget,
     Flamestore flamestore,
     Key key,
   })  : _flamestore = flamestore ?? Flamestore.instance,
@@ -15,22 +16,23 @@ class DocumentBuilder<T extends Document> extends StatefulWidget {
         this.isFromReference = false,
         super(key: key);
 
-  DocumentBuilder.fromReference(
-    this.reference, {
+  DocumentBuilder.fromReference({
+    @required this.reference,
     @required this.builder,
     this.allowNull = false,
     this.onErrorWidget,
     this.onEmptyWidget,
+    this.onKeyNullWidget,
     Flamestore flamestore,
     Key key,
   })  : _flamestore = flamestore ?? Flamestore.instance,
-        this.document = null,
+        this.keyDocument = null,
         this.isFromReference = true,
         this.fetchOnInit = false,
         super(key: key);
 
   final Flamestore _flamestore;
-  final T document;
+  final T keyDocument;
   final Widget Function(T state) builder;
   final bool allowNull;
   final bool fetchOnInit;
@@ -38,6 +40,7 @@ class DocumentBuilder<T extends Document> extends StatefulWidget {
   final bool isFromReference;
   final Widget onErrorWidget;
   final Widget onEmptyWidget;
+  final Widget onKeyNullWidget;
 
   @override
   _DocumentBuilderState<T> createState() => _DocumentBuilderState<T>();
@@ -48,7 +51,7 @@ class _DocumentBuilderState<T extends Document>
   @override
   void initState() {
     if (widget.fetchOnInit) {
-      widget._flamestore.getDocument(widget.document);
+      widget._flamestore.getDocument(widget.keyDocument);
     }
     super.initState();
   }
@@ -58,10 +61,10 @@ class _DocumentBuilderState<T extends Document>
     if (widget.isFromReference) {
       return _buildStreamBuilder(widget.reference.path);
     }
-    if (widget.document.keys.contains(null)) {
-      return Container();
+    if (widget.keyDocument.keys.contains(null)) {
+      return widget.onKeyNullWidget ?? Container();
     }
-    final path = widget.document.reference.path;
+    final path = widget.keyDocument.reference.path;
     return _buildStreamBuilder(path);
   }
 

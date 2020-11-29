@@ -3,14 +3,14 @@ part of '../../flamestore.dart';
 class _DocumentListManager {
   _DocumentListManager({
     _DocumentListFirestoreAdapter adapter,
-    Map<DocumentList, BehaviorSubject<_DocumentListState>> map,
+    Map<DocumentListKey, BehaviorSubject<_DocumentListState>> map,
   })  : _db = adapter ?? _DocumentListFirestoreAdapter(),
         _state = map ?? {};
 
-  final Map<DocumentList, BehaviorSubject<_DocumentListState>> _state;
+  final Map<DocumentListKey, BehaviorSubject<_DocumentListState>> _state;
   final _DocumentListFirestoreAdapter _db;
 
-  Future<List<T>> get<T extends Document, V extends DocumentList<T>>(
+  Future<List<T>> get<T extends Document, V extends DocumentListKey<T>>(
     V list,
   ) async {
     _createIfAbsent(list);
@@ -32,12 +32,12 @@ class _DocumentListManager {
         .toList();
   }
 
-  ValueStream<_DocumentListState> streamOf(DocumentList list) {
+  ValueStream<_DocumentListState> streamOf(DocumentListKey list) {
     _createIfAbsent(list);
     return _state[list];
   }
 
-  Future<List<T>> refresh<T extends Document, V extends DocumentList<T>>(
+  Future<List<T>> refresh<T extends Document, V extends DocumentListKey<T>>(
     V list,
   ) async {
     _createIfAbsent(list);
@@ -47,7 +47,7 @@ class _DocumentListManager {
 
   void addReference(
     DocumentReference reference,
-    List<DocumentList> lists,
+    List<DocumentListKey> lists,
   ) {
     for (final list in lists) {
       final oldReferences = _state[list].value.references;
@@ -68,14 +68,14 @@ class _DocumentListManager {
     }
   }
 
-  void _createIfAbsent(DocumentList list) {
+  void _createIfAbsent(DocumentListKey list) {
     if (!_state.containsKey(list) || _state[list] == null) {
       _state[list] = BehaviorSubject.seeded(_DocumentListState());
     }
   }
 
   void _updateState(
-    DocumentList list, {
+    DocumentListKey list, {
     List<DocumentReference> references,
     DocumentSnapshot lastDocument,
     bool hasMore,
