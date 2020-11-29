@@ -68,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
               : FlatButton(child: Text('Logout'), onPressed: _signOut)
         ],
       ),
-      body: DocumentListBuilder(
+      body: ReferenceListBuilder(
         documentListKey: TweetList(),
         onEmptyWidget: Text('empty'),
         builder: (references, hasMore) {

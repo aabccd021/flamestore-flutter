@@ -1,7 +1,7 @@
 part of '../../flamestore.dart';
 
-class DocumentListBuilder extends StatefulWidget {
-  DocumentListBuilder({
+class ReferenceListBuilder extends StatefulWidget {
+  ReferenceListBuilder({
     @required this.documentListKey,
     @required this.builder,
     this.onEmptyWidget,
@@ -10,10 +10,7 @@ class DocumentListBuilder extends StatefulWidget {
   })  : _flamestore = flamestore ?? Flamestore.instance,
         super(key: key);
 
-  final Widget Function(
-    List<DocumentReference> document,
-    bool hasMore,
-  ) builder;
+  final Widget Function(List<DocumentReference> document, bool hasMore) builder;
   final DocumentListKey documentListKey;
   final Flamestore _flamestore;
   final Widget onEmptyWidget;
@@ -22,10 +19,10 @@ class DocumentListBuilder extends StatefulWidget {
   _ListViewBuilderState createState() => _ListViewBuilderState();
 }
 
-class _ListViewBuilderState extends State<DocumentListBuilder> {
+class _ListViewBuilderState extends State<ReferenceListBuilder> {
   @override
   void initState() {
-    widget._flamestore.getList(widget.documentListKey).then((value) => print('fetched'));
+    widget._flamestore.getList(widget.documentListKey);
     super.initState();
   }
 

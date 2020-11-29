@@ -19,5 +19,5 @@ part 'src/document_list/_document_list_manager.dart';
 part 'src/document_list/_document_list_state.dart';
 part 'src/document_list/document_list_state.dart';
 part 'src/misc/extension.dart';
-part 'src/widgets/document_list_builder.dart';
+part 'src/widgets/reference_list_builder.dart';
 part 'src/widgets/document_builder.dart';
