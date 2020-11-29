@@ -24,26 +24,26 @@ class _Flamestore {
     return _documentManager.addFromList<T>(documents);
   }
 
-  ValueStream<DocumentListState<T>>
+  ValueStream<DocumentListState>
       streamOfList<T extends Document, V extends DocumentList<T>>(
     DocumentList list,
   ) {
     return _listManager
         .streamOf(list)
-        .map((state) => _internalStateToExternalState<T>(state))
+        .map((state) => DocumentListState(state.hasMore, state.references))
         .shareValue();
   }
 
-  DocumentListState<T> _internalStateToExternalState<T extends Document>(
-    _DocumentListState state,
-  ) {
-    final stream = state.references
-        .map((reference) => docStreamWherePath<T>(reference.path));
-    return DocumentListState(
-      state.hasMore,
-      Rx.combineLatestList(stream).shareValue(),
-    );
-  }
+  // DocumentListState<T> _internalStateToExternalState<T extends Document>(
+  //   _DocumentListState state,
+  // ) {
+  //   final stream = state.references
+  //       .map((reference) => docStreamWherePath<T>(reference.path));
+  //   return DocumentListState(
+  //     state.hasMore,
+  //     Rx.combineLatestList(stream).shareValue(),
+  //   );
+  // }
 
   void setDocument<T extends Document>(
     T document, {

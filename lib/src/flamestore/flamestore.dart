@@ -13,7 +13,7 @@ class Flamestore {
     return _flamestore.getList<T, V>(list);
   }
 
-  ValueStream<DocumentListState<T>>
+  ValueStream<DocumentListState>
       _streamOfList<T extends Document, V extends DocumentList<T>>(
     V list,
   ) {

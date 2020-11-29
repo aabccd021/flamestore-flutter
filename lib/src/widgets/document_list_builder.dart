@@ -1,7 +1,6 @@
 part of '../../flamestore.dart';
 
-class DocumentListBuilder<T extends Document, V extends DocumentList<T>>
-    extends StatefulWidget {
+class DocumentListBuilder extends StatefulWidget {
   DocumentListBuilder(
     this.list, {
     @required this.builder,
@@ -12,18 +11,18 @@ class DocumentListBuilder<T extends Document, V extends DocumentList<T>>
 
   final Widget Function(
     BuildContext context,
-    List<T> document,
+    List<DocumentReference> document,
     bool hasMore,
   ) builder;
-  final V list;
+  final DocumentList list;
   final Flamestore _flamestore;
 
   @override
-  _ListViewBuilderState<T, V> createState() => _ListViewBuilderState<T, V>();
+  _ListViewBuilderState createState() => _ListViewBuilderState();
 }
 
 class _ListViewBuilderState<T extends Document, V extends DocumentList<T>>
-    extends State<DocumentListBuilder<T, V>> {
+    extends State<DocumentListBuilder> {
   @override
   void initState() {
     widget._flamestore.getList<T, V>(widget.list);
@@ -32,20 +31,25 @@ class _ListViewBuilderState<T extends Document, V extends DocumentList<T>>
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentListState<T>>(
+    return StreamBuilder<DocumentListState>(
       stream: widget._flamestore._streamOfList(widget.list),
       builder: (context, listSnapshot) {
         if (listSnapshot.hasData) {
-          return StreamBuilder<List<T>>(
-            stream: listSnapshot.data.documents,
-            builder: (context, snapshot) {
-              return widget.builder(
-                context,
-                snapshot?.data ?? [],
-                listSnapshot.data.hasMore,
-              );
-            },
+          return widget.builder(
+            context,
+            listSnapshot?.data?.documents ?? [],
+            listSnapshot?.data?.hasMore ?? true,
           );
+          // return StreamBuilder<List<T>>(
+          //   stream: listSnapshot.data.documents,
+          //   builder: (context, snapshot) {
+          //     return widget.builder(
+          //       context,
+          //       snapshot?.data ?? [],
+          //       listSnapshot.data.hasMore,
+          //     );
+          //   },
+          // );
         }
         return Container();
       },

@@ -67,9 +67,9 @@ class _MyHomePageState extends State<MyHomePage> {
               : FlatButton(child: Text('Logout'), onPressed: _signOut)
         ],
       ),
-      body: DocumentListBuilder<Tweet, TweetList>(
+      body: DocumentListBuilder(
         TweetList(),
-        builder: (_, docs, hasMore) {
+        builder: (_, refs, hasMore) {
           return ListView(
             children: [
               if (currentUser != null) TweetCount(currentUser),
@@ -78,9 +78,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () => flamestore.refreshList(TweetList()),
                 child: Text('Refresh List'),
               ),
-              ...docs
-                  .map((doc) => TweetWidget(tweet: doc, user: currentUser))
-                  .toList(),
+              ...refs.map((ref) {
+                return DocumentBuilder.fromReference(
+                  ref,
+                  builder: (tweet) {
+                    return TweetWidget(tweet: tweet, user: currentUser);
+                  },
+                );
+              }).toList(),
               RaisedButton(
                 onPressed:
                     hasMore ? () => flamestore.getList(TweetList()) : null,
@@ -132,7 +137,7 @@ class TweetCount extends StatelessWidget {
   Widget build(BuildContext context) {
     return DocumentBuilder(
       keyUser,
-      builder: (_, user) => Text('TweetCount: ${user.data.tweetsCount}'),
+      builder: (user) => Text('TweetCount: ${user.data.tweetsCount}'),
     );
   }
 }
@@ -195,8 +200,8 @@ class LikeButton extends StatelessWidget {
     return DocumentBuilder<Like>(
       like,
       allowNull: true,
-      builder: (context, document) {
-        final likeValue = document?.data?.likeValue ?? 0;
+      builder: (likeDocument) {
+        final likeValue = likeDocument?.data?.likeValue ?? 0;
         final color = likeValue != 0 ? Colors.red : null;
         return Row(
           children: [
