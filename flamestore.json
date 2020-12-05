@@ -1,7 +1,13 @@
 {
-  "$schema": "https://raw.githubusercontent.com/aabccd021/flamestore/master/flamestore-schema/v1.json",
+  "$schema": "https://raw.githubusercontent.com/aabccd021/flamestore/master/flamestore-schema/v2.json",
   "configuration": {
-    "region": "asia-southeast2"
+    "region": "asia-southeast2",
+    "project": {
+      "flamestore": {
+        "dynamicLinkDomain": "flamestore.page.link",
+        "androidPackageName": "com.example.flamestore_example"
+      }
+    }
   },
   "collections": {
     "users": {
@@ -97,7 +103,7 @@
         "creationTime": {
           "type": {
             "timestamp": {
-              "serverTimestamp": true
+              "isServerTimestamp": true
             }
           }
         },
@@ -107,6 +113,16 @@
           },
           "type": {
             "float": {}
+          }
+        },
+        "dynamicLink": {
+          "type": {
+            "dynamicLink": {
+              "title": {
+                "field": "tweetText"
+              },
+              "description": "tweet description"
+            }
           }
         }
       }

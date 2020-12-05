@@ -1,11 +1,6 @@
 part of '../../flamestore.dart';
 
 class _DocumentFirestoreAdapter {
-  _DocumentFirestoreAdapter({FirebaseFirestore firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  final FirebaseFirestore _firestore;
-
   Future<T> get<T extends Document>(T document) async {
     final reference = document.reference;
     final snapshot = await reference.get();
@@ -17,16 +12,15 @@ class _DocumentFirestoreAdapter {
     return document.fromSnapshot(snapshot);
   }
 
-  Future<DocumentReference> create<T extends Document>(T document) async {
-    final reference = document.reference;
+  Future<void> create<T extends Document>(
+    DocumentReference reference,
+    T document,
+  ) async {
     final data = document.toDataMap()
       ..removeWhere((key, _) => !document.firestoreCreateFields().contains(key))
       ..removeNull();
     print('CREATE $reference $data');
-    if (reference != null) {
-      return reference..set(data, SetOptions(merge: true));
-    }
-    return _firestore.collection(document.collectionName).add(data);
+    return reference..set(data, SetOptions(merge: true));
   }
 
   Future<void> update<T extends Document>(

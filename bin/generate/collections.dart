@@ -87,6 +87,19 @@ String generateCollection(
         .join(',');
   }
 
+  String fromDynamicLinkAttribute(String name, DynamicLinkAttribute attribute) {
+    String value;
+    if (attribute == null) {
+      return '';
+    }
+    if (attribute.isFieldName) {
+      value = '"${attribute.content}"';
+    } else {
+      value = 'data.${attribute.content}';
+    }
+    return '$name: $value,';
+  }
+
   String generateWithDefaultValue() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
@@ -95,6 +108,14 @@ String generateCollection(
         value = '0';
       } else if (field?.type?.timestamp?.serverTimestamp == true) {
         value = 'DateTime.now()';
+      } else if (field?.type?.dynamicLink != null) {
+        final dynamicLink = field.type.dynamicLink;
+        final title = fromDynamicLinkAttribute('title', dynamicLink.title);
+        final description =
+            fromDynamicLinkAttribute('description', dynamicLink.description);
+        final imageUrl =
+            fromDynamicLinkAttribute('imageUrl', dynamicLink.imageUrl);
+        value = 'DynamicLinkField(${title}${description}${imageUrl})';
       }
       if (value != '') {
         content += "'$fieldName': $value,\n";
@@ -111,15 +132,20 @@ String generateCollection(
     return content;
   }
 
+  bool isServerTimestamp(FieldType type) {
+    return type?.timestamp?.serverTimestamp ?? false;
+  }
+
   String firestoreCreateFields() {
     String content = '';
     collection.fields.forEach((fieldName, field) {
-      if ((field.type.int != null ||
-              field.type.string != null ||
-              field.type.path != null ||
-              field.type.float != null ||
-              field.type.timestamp != null) &&
-          field?.type?.timestamp?.serverTimestamp == null) {
+      final isCreatable = field.type.int != null ||
+          field.type.string != null ||
+          field.type.path != null ||
+          field.type.float != null ||
+          field.type.dynamicLink != null ||
+          (field.type.timestamp != null && !isServerTimestamp(field.type));
+      if (isCreatable) {
         content += "'$fieldName',";
       }
     });
@@ -223,7 +249,6 @@ String generateCollection(
       };
     }
 
-
     @override
     Map<String, dynamic> toDataMap() {
       return {
@@ -263,11 +288,6 @@ String generateCollection(
     @override
     ${colName} fromSnapshot(DocumentSnapshot snapshot){
       return super.fromSnapshot(snapshot) as ${colName};
-    }
-
-    @override
-    ${colName} withDefaultValue(){
-      return super.withDefaultValue() as ${colName};
     }
 
     @override

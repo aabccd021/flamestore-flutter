@@ -10,6 +10,10 @@ class _Flamestore {
   final _DocumentListManager _listManager;
   final _DocumentManager _documentManager;
 
+  Future<void> initialize(FlamestoreConfig projectConfig) async {
+    _documentManager.config = projectConfig;
+  }
+
   Future<void> getList<T extends Document, V extends DocumentListKey<T>>(
     DocumentListKey<T> list,
   ) async {

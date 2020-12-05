@@ -7,6 +7,10 @@ class Flamestore {
 
   final _Flamestore _flamestore = _Flamestore();
 
+  Future<void> initialize(FlamestoreConfig projectConfig) async {
+    return _flamestore.initialize(projectConfig);
+  }
+
   Future<void> getList<T extends Document, V extends DocumentListKey<T>>(
     DocumentListKey<T> list,
   ) {

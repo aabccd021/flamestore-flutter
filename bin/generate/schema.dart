@@ -63,6 +63,7 @@ class FieldType {
   Sum sum;
   Count count;
   SyncFrom syncFrom;
+  DynamicLink dynamicLink;
 
   FieldType.fromJson(Map<String, dynamic> json) {
     string =
@@ -77,6 +78,9 @@ class FieldType {
     count = json['count'] != null ? Count.fromJson(json['count']) : null;
     syncFrom =
         json['syncFrom'] != null ? SyncFrom.fromJson(json['syncFrom']) : null;
+    dynamicLink = json['dynamicLink'] != null
+        ? DynamicLink.fromJson(json['dynamicLink'])
+        : null;
   }
 
   String toStringFromSchema(Schema schema, Collection thisCollection) {
@@ -104,6 +108,9 @@ class FieldType {
     if (sum != null || count != null) {
       return 'int';
     }
+    if (dynamicLink != null) {
+      return 'String';
+    }
     return '';
   }
 }
@@ -126,7 +133,7 @@ class DatetimeField {
   bool serverTimestamp;
 
   DatetimeField.fromJson(Map<String, dynamic> json) {
-    serverTimestamp = json['serverTimestamp'];
+    serverTimestamp = json['isServerTimestamp'];
   }
 }
 
@@ -185,6 +192,46 @@ class SyncFrom {
     field = json['field'];
     reference = json['reference'];
   }
+}
+
+class DynamicLink {
+  DynamicLinkAttribute title;
+  DynamicLinkAttribute description;
+  DynamicLinkAttribute imageUrl;
+
+  DynamicLink.fromJson(Map<String, dynamic> json) {
+    final jsonTitle = json['title'];
+    if (jsonTitle != null) {
+      if (jsonTitle is String) {
+        title = DynamicLinkAttribute(true, jsonTitle);
+      } else {
+        title = DynamicLinkAttribute(false, jsonTitle['field']);
+      }
+    }
+    final jsonDesc = json['description'];
+    if (jsonDesc != null) {
+      if (jsonDesc is String) {
+        description = DynamicLinkAttribute(true, jsonDesc);
+      } else {
+        description = DynamicLinkAttribute(false, jsonDesc['field']);
+      }
+    }
+    final jsonImageUrl = json['imageURL'];
+    if (jsonImageUrl != null) {
+      if (jsonImageUrl is String) {
+        imageUrl = DynamicLinkAttribute(true, jsonImageUrl);
+      } else {
+        imageUrl = DynamicLinkAttribute(false, jsonImageUrl['field']);
+      }
+    }
+  }
+}
+
+class DynamicLinkAttribute {
+  final bool isFieldName;
+  final String content;
+
+  DynamicLinkAttribute(this.isFieldName, this.content);
 }
 
 class Rules {

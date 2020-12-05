@@ -22,6 +22,14 @@ void main() async {
     sslEnabled: false,
     persistenceEnabled: false,
   );
+  await Flamestore.instance.initialize(
+    FlamestoreConfig(projects: {
+      'flamestore': ProjectConfig(
+        dynamicLinkDomain: 'flamestore.page.link',
+        androidPackageName: 'com.example.flamestore_example',
+      )
+    }),
+  );
   runApp(MyApp());
 }
 

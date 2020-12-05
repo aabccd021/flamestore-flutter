@@ -63,10 +63,4 @@ abstract class Document {
   Document fromSnapshot(DocumentSnapshot snapshot) {
     return fromMap(snapshot.data())..reference = snapshot.reference;
   }
-
-  @mustCallSuper
-  @protected
-  Document withDefaultValue() {
-    return fromMap({...toMap(), ...defaultValueMap})..reference = reference;
-  }
 }

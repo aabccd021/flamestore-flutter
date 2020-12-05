@@ -96,11 +96,6 @@ class User extends Document {
   }
 
   @override
-  User withDefaultValue() {
-    return super.withDefaultValue() as User;
-  }
-
-  @override
   User mergeDataWith(Document other) {
     return super.mergeDataWith(other) as User;
   }
@@ -128,6 +123,7 @@ class _TweetData {
     this.likesSum,
     this.creationTime,
     this.hotness,
+    this.dynamicLink,
   });
   final DocumentReference user;
   final String userName;
@@ -135,6 +131,7 @@ class _TweetData {
   final int likesSum;
   final DateTime creationTime;
   final double hotness;
+  final String dynamicLink;
 }
 
 class Tweet extends Document {
@@ -142,10 +139,12 @@ class Tweet extends Document {
     DocumentReference user,
     String userName,
     String tweetText,
+    String dynamicLink,
   }) : data = _TweetData(
           user: user,
           userName: userName,
           tweetText: tweetText,
+          dynamicLink: dynamicLink,
         );
 
   Tweet._({
@@ -155,6 +154,7 @@ class Tweet extends Document {
     int likesSum,
     DateTime creationTime,
     double hotness,
+    String dynamicLink,
   }) : data = _TweetData(
           user: user,
           userName: userName,
@@ -162,6 +162,7 @@ class Tweet extends Document {
           likesSum: likesSum,
           creationTime: creationTime,
           hotness: hotness,
+          dynamicLink: dynamicLink,
         );
 
   final _TweetData data;
@@ -179,7 +180,8 @@ class Tweet extends Document {
         creationTime: data['creationTime'] is DateTime
             ? data['creationTime']
             : data['creationTime']?.toDate(),
-        hotness: data['hotness']?.toDouble());
+        hotness: data['hotness']?.toDouble(),
+        dynamicLink: data['dynamicLink']);
   }
 
   @override
@@ -187,6 +189,10 @@ class Tweet extends Document {
     return {
       'likesSum': 0,
       'creationTime': DateTime.now(),
+      'dynamicLink': DynamicLinkField(
+        title: data.tweetText,
+        description: "tweet description",
+      ),
     };
   }
 
@@ -199,6 +205,7 @@ class Tweet extends Document {
       'likesSum': data.likesSum,
       'creationTime': data.creationTime,
       'hotness': data.hotness,
+      'dynamicLink': data.dynamicLink,
     };
   }
 
@@ -208,6 +215,7 @@ class Tweet extends Document {
       'user',
       'tweetText',
       'hotness',
+      'dynamicLink',
     ];
   }
 
@@ -234,11 +242,6 @@ class Tweet extends Document {
   }
 
   @override
-  Tweet withDefaultValue() {
-    return super.withDefaultValue() as Tweet;
-  }
-
-  @override
   Tweet mergeDataWith(Document other) {
     return super.mergeDataWith(other) as Tweet;
   }
@@ -250,6 +253,7 @@ class Tweet extends Document {
     int likesSum,
     DateTime creationTime,
     double hotness,
+    String dynamicLink,
   }) {
     return Tweet._(
       user: user ?? data.user,
@@ -258,6 +262,7 @@ class Tweet extends Document {
       likesSum: likesSum ?? data.likesSum,
       creationTime: creationTime ?? data.creationTime,
       hotness: hotness ?? data.hotness,
+      dynamicLink: dynamicLink ?? data.dynamicLink,
     );
   }
 }
@@ -352,11 +357,6 @@ class Like extends Document {
   @override
   Like fromSnapshot(DocumentSnapshot snapshot) {
     return super.fromSnapshot(snapshot) as Like;
-  }
-
-  @override
-  Like withDefaultValue() {
-    return super.withDefaultValue() as Like;
   }
 
   @override
