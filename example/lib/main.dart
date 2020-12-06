@@ -16,7 +16,6 @@ void main() async {
   await DotEnv().load();
   final debugFirestoreIP = DotEnv().env['DEBUG_FIRESTORE_IP'];
   final debugFirestoreIpPort = '$debugFirestoreIP:8080';
-  print(debugFirestoreIpPort);
   FirebaseFirestore.instance.settings = Settings(
     host: debugFirestoreIpPort,
     sslEnabled: false,

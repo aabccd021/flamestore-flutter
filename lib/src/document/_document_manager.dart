@@ -133,9 +133,8 @@ class _DocumentManager {
         imageUrl: field.imageUrl == null ? null : Uri.parse(field.imageUrl),
       ),
       dynamicLinkParametersOptions: DynamicLinkParametersOptions(
-        shortDynamicLinkPathLength: isSuffixShort
-            ? ShortDynamicLinkPathLength.short
-            : ShortDynamicLinkPathLength.unguessable,
+        shortDynamicLinkPathLength:
+            isSuffixShort ? ShortDynamicLinkPathLength.short : null,
       ),
     );
     final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();

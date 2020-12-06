@@ -198,6 +198,7 @@ class DynamicLink {
   DynamicLinkAttribute title;
   DynamicLinkAttribute description;
   DynamicLinkAttribute imageUrl;
+  bool isSuffixShort;
 
   DynamicLink.fromJson(Map<String, dynamic> json) {
     final jsonTitle = json['title'];
@@ -224,6 +225,7 @@ class DynamicLink {
         imageUrl = DynamicLinkAttribute(false, jsonImageUrl['field']);
       }
     }
+    isSuffixShort = json['isSuffixShort'] ?? false;
   }
 }
 

@@ -192,6 +192,7 @@ class Tweet extends Document {
       'dynamicLink': DynamicLinkField(
         title: data.tweetText,
         description: "tweet description",
+        isSuffixShort: true,
       ),
     };
   }

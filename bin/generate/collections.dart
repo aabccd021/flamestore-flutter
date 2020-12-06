@@ -115,7 +115,9 @@ String generateCollection(
             fromDynamicLinkAttribute('description', dynamicLink.description);
         final imageUrl =
             fromDynamicLinkAttribute('imageUrl', dynamicLink.imageUrl);
-        value = 'DynamicLinkField(${title}${description}${imageUrl})';
+        final isShortSuffix =
+            dynamicLink.isSuffixShort ? 'isSuffixShort: true,' : '';
+        value = 'DynamicLinkField($title$description$imageUrl$isShortSuffix)';
       }
       if (value != '') {
         content += "'$fieldName': $value,\n";
