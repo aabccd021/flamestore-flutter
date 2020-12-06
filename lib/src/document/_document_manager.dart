@@ -48,16 +48,16 @@ class _DocumentManager {
       ...document.toMap(),
       ...document.defaultValueMap,
     };
-    for (final key in documentMap.keys) {
-      final field = documentMap[key];
+    for (final fieldName in documentMap.keys) {
+      final field = documentMap[fieldName];
       if (field is DynamicLinkField) {
-        newDocumentMap[key] = await _createDynamicLink(
+        newDocumentMap[fieldName] = await _createDynamicLink(
           collectionName,
           reference.id,
           field,
         );
       } else {
-        newDocumentMap[key] = field;
+        newDocumentMap[fieldName] = field;
       }
     }
     final newDocument = document.fromMap(newDocumentMap);
@@ -138,6 +138,8 @@ class _DocumentManager {
       ),
     );
     final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();
-    return dynamicUrl.shortUrl.toString();
+    final shortUrl = dynamicUrl.shortUrl.toString();
+    print('CREATED DYNAMIC LINK $shortUrl');
+    return shortUrl;
   }
 }

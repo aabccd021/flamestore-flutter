@@ -7,6 +7,7 @@ import 'package:flamestore/flamestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'flamestore/flamestore.g.dart';
 
@@ -31,7 +32,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flamestore Demo',
       darkTheme: ThemeData(brightness: Brightness.dark),
-      home: MyHomePage(),
+      home: DynamicLinkHandler(
+        builders: dynamicLinkBuilders(
+          tweetBuilder: (tweet) {
+            return Scaffold(
+              appBar: AppBar(title: Text(tweet.reference.id)),
+              body: Center(child: TweetWidget(tweet: tweet, user: null)),
+            );
+          },
+        ),
+        child: MyHomePage(),
+      ),
     );
   }
 }
@@ -167,6 +178,11 @@ class _TweetState extends State<TweetWidget> {
           Text('tweetText: ${data?.tweetText}'),
           Text('likes: ${data?.likesSum}'),
           Text('creationTime: ${data?.creationTime}'),
+          if (data?.dynamicLink != null)
+            ElevatedButton(
+              child: Text('OPEN'),
+              onPressed: () => launch(data?.dynamicLink),
+            ),
           if (widget.user != null)
             Row(
               children: [

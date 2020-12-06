@@ -5,7 +5,7 @@ class _DocumentFirestoreAdapter {
     final reference = document.reference;
     final snapshot = await reference.get();
     final data = snapshot?.data();
-    print('GET $reference $data');
+    print('GET DOCUMENT $reference $data');
     if (data == null) {
       return null;
     }
@@ -19,20 +19,20 @@ class _DocumentFirestoreAdapter {
     final data = document.toDataMap()
       ..removeWhere((key, _) => !document.firestoreCreateFields().contains(key))
       ..removeNull();
-    print('CREATE $reference $data');
+    print('CREATE DOCUMENT $reference $data');
     return reference..set(data, SetOptions(merge: true));
   }
 
   Future<void> update<T extends Document>(
       DocumentReference reference, T updatedData) {
     final data = updatedData.toDataMap()..removeNull();
-    print('UPDATE $reference $data');
+    print('UPDATE DOCUMENT $reference $data');
     return reference.set(data, SetOptions(merge: true));
   }
 
   Future<void> delete<T extends Document>(T document) {
     final reference = document.reference;
-    print('UPDATE $reference');
+    print('DELETE DOCUMENT $reference');
     return reference.delete();
   }
 }

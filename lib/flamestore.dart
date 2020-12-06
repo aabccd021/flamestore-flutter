@@ -3,7 +3,7 @@ import 'package:easy_debounce/easy_debounce.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'src/aggregation/count.dart';
@@ -25,3 +25,4 @@ part 'src/flamestore/flamestore.dart';
 part 'src/misc/extension.dart';
 part 'src/widgets/document_builder.dart';
 part 'src/widgets/reference_list_builder.dart';
+part 'src/widgets/dynamic_link_handler.dart';

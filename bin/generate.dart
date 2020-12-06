@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:inflection2/inflection2.dart';
 
 import 'generate/collections.dart';
 import 'generate/schema.dart';
@@ -26,6 +27,36 @@ String generateProjects(Schema schema) {
   }).join(',');
 }
 
+String generateDynamicLinkBuilder(Schema schema) {
+  final dlCollections = Map<String, Collection>.from(schema.collections)
+    ..removeWhere((_, collection) {
+      return collection.fields.values
+          .every((field) => field.type.dynamicLink == null);
+    });
+
+  final parameter = dlCollections.entries.map((collectionEntry) {
+    final colName = SINGULAR.convert(collectionEntry.key);
+    return '@required Widget Function(${colName.inCaps} $colName) ${colName}Builder,';
+  }).join();
+
+  final returns = dlCollections.entries.map((collectionEntry) {
+    final rawColName = collectionEntry.key;
+    final colName = SINGULAR.convert(rawColName);
+    return "'$rawColName': (Document document) =>"
+        " ${colName}Builder(document as ${colName.inCaps}),";
+  }).join();
+
+  return """
+  Map<String, Widget Function(Document)> dynamicLinkBuilders({
+    ${parameter}
+  }){
+    return {
+      ${returns}
+    };
+  }
+""";
+}
+
 main(List<String> args) async {
   final parser = ArgParser()
     ..addOption(inputPath, abbr: 'i')
@@ -42,12 +73,15 @@ main(List<String> args) async {
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
+import 'package:flutter/widgets.dart';
 $colContent
 final config = FlamestoreConfig(
   projects: {
     ${generateProjects(schema)}
   }
 );
+
+${generateDynamicLinkBuilder(schema)}
 """;
   final filePath = '${path}/flamestore.g.dart';
   await File(filePath).writeAsString(content);

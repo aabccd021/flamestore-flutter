@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
+import 'package:flutter/widgets.dart';
 
 class _UserData {
   _UserData({
@@ -384,3 +385,11 @@ final config = FlamestoreConfig(projects: {
     androidPackageName: 'com.example.flamestore_example',
   )
 });
+
+Map<String, Widget Function(Document)> dynamicLinkBuilders({
+  @required Widget Function(Tweet tweet) tweetBuilder,
+}) {
+  return {
+    'tweets': (Document document) => tweetBuilder(document as Tweet),
+  };
+}
