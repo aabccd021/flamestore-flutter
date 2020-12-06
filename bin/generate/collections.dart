@@ -212,6 +212,8 @@ String generateCollection(
     return content;
   }
 
+
+
   return """
   class _${colName}Data {
     _${colName}Data({
@@ -305,5 +307,7 @@ String generateCollection(
       );
     }
   }
+
+
   """;
 }

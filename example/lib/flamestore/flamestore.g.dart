@@ -377,3 +377,10 @@ class Like extends Document {
     );
   }
 }
+
+final config = FlamestoreConfig(projects: {
+  'flamestore': ProjectConfig(
+    dynamicLinkDomain: 'flamestore.page.link',
+    androidPackageName: 'com.example.flamestore_example',
+  )
+});

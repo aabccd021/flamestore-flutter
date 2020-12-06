@@ -2,11 +2,33 @@ import 'package:enum_to_string/enum_to_string.dart';
 
 class Schema {
   Map<String, Collection> collections;
+  Configuration configuration;
 
   Schema.fromJson(Map<String, dynamic> json) {
     Map<String, dynamic> collections = json['collections'];
     this.collections = collections
         .map((key, value) => MapEntry(key, Collection.fromJson(value)));
+    this.configuration = Configuration.fromJson(json['configuration']);
+  }
+}
+
+class Configuration {
+  Map<String, ProjectConfiguration> project;
+  Configuration.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> project = json['project'];
+    this.project = project.map(
+        (key, value) => MapEntry(key, ProjectConfiguration.fromJson(value)));
+  }
+}
+
+class ProjectConfiguration {
+  String domain;
+  String dynamicLinkDomain;
+  String androidPackageName;
+  ProjectConfiguration.fromJson(Map<String, dynamic> json) {
+    this.domain = json['domain'];
+    this.dynamicLinkDomain = json['dynamicLinkDomain'];
+    this.androidPackageName = json['androidPackageName'];
   }
 }
 
