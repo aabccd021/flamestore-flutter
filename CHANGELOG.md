@@ -1,3 +1,2 @@
-## [0.0.19] - TODO: Add release date.
-
-* New
+# 0.0.20
+Dynamic Link Generation Added
