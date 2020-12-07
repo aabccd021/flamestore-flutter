@@ -132,6 +132,11 @@ class _DocumentManager {
         description: field.description,
         imageUrl: field.imageUrl == null ? null : Uri.parse(field.imageUrl),
       ),
+      googleAnalyticsParameters: GoogleAnalyticsParameters(
+        campaign: '$collectionName',
+        medium: 'dynamic-link',
+        source: 'flamestore-dynamic-link',
+      ),
       dynamicLinkParametersOptions: DynamicLinkParametersOptions(
         shortDynamicLinkPathLength:
             isSuffixShort ? ShortDynamicLinkPathLength.short : null,
