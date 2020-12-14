@@ -4,7 +4,8 @@ class _DocumentsState {
   _DocumentsState({
     BehaviorSubject<Map<String, BehaviorSubject<Document>>> stream,
   }) : _mapStream = stream ??
-            BehaviorSubject<Map<String, BehaviorSubject<Document>>>.seeded({});
+            BehaviorSubject<Map<String, BehaviorSubject<Document>>>.seeded(
+                {'': BehaviorSubject.seeded(null)});
 
   final BehaviorSubject<Map<String, BehaviorSubject<Document>>> _mapStream;
   Map<String, BehaviorSubject<Document>> get _map => _mapStream.value;
@@ -12,6 +13,7 @@ class _DocumentsState {
   ValueStream<T> streamWherePath<T extends Document>(String path) {
     return _mapStream
         .switchMap((documentsSet) => Rx.combineLatestList(documentsSet.values)
+            .defaultIfEmpty([null])
             .map((documents) => documents
                 .whereType<T>()
                 .firstWhere((document) => document.reference.path == path))

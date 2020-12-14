@@ -16,7 +16,9 @@ class _DocumentFirestoreAdapter {
     DocumentReference reference,
     T document,
   ) async {
-    final data = document.toDataMap()
+    final data = document.toDataMap().map((key, value) => value is Map
+        ? MapEntry(key, value..removeWhere((key, _) => key != 'reference'))
+        : MapEntry(key, value))
       ..removeWhere((key, _) => !document.firestoreCreateFields().contains(key))
       ..removeNull();
     print('CREATE DOCUMENT $reference $data');

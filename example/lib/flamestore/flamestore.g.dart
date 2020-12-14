@@ -116,18 +116,36 @@ class User extends Document {
   }
 }
 
+class _TweetUser {
+  _TweetUser({
+    @required this.reference,
+    @required this.userName,
+  });
+
+  final DocumentReference reference;
+  final String userName;
+
+  _TweetUser copyWith({
+    DocumentReference reference,
+    String userName,
+  }) {
+    return _TweetUser(
+      reference: reference ?? this.reference,
+      userName: userName ?? this.userName,
+    );
+  }
+}
+
 class _TweetData {
   _TweetData({
     this.user,
-    this.userName,
     this.tweetText,
     this.likesSum,
     this.creationTime,
     this.hotness,
     this.dynamicLink,
   });
-  final DocumentReference user;
-  final String userName;
+  final _TweetUser user;
   final String tweetText;
   final int likesSum;
   final DateTime creationTime;
@@ -137,20 +155,20 @@ class _TweetData {
 
 class Tweet extends Document {
   Tweet({
-    DocumentReference user,
-    String userName,
+    User user,
     String tweetText,
     String dynamicLink,
   }) : data = _TweetData(
-          user: user,
-          userName: userName,
+          user: _TweetUser(
+            reference: user?.reference,
+            userName: user?.data?.userName,
+          ),
           tweetText: tweetText,
           dynamicLink: dynamicLink,
         );
 
   Tweet._({
-    DocumentReference user,
-    String userName,
+    _TweetUser user,
     String tweetText,
     int likesSum,
     DateTime creationTime,
@@ -158,7 +176,6 @@ class Tweet extends Document {
     String dynamicLink,
   }) : data = _TweetData(
           user: user,
-          userName: userName,
           tweetText: tweetText,
           likesSum: likesSum,
           creationTime: creationTime,
@@ -174,8 +191,10 @@ class Tweet extends Document {
   @override
   Tweet fromMap(Map<String, dynamic> data) {
     return Tweet._(
-        user: data['user'],
-        userName: data['userName'],
+        user: _TweetUser(
+          reference: data['user']['reference'],
+          userName: data['user']['userName'],
+        ),
         tweetText: data['tweetText'],
         likesSum: data['likesSum'],
         creationTime: data['creationTime'] is DateTime
@@ -201,8 +220,10 @@ class Tweet extends Document {
   @override
   Map<String, dynamic> toDataMap() {
     return {
-      'user': data.user,
-      'userName': data.userName,
+      'user': {
+        'reference': data.user.reference,
+        'userName': data.user.userName,
+      },
       'tweetText': data.tweetText,
       'likesSum': data.likesSum,
       'creationTime': data.creationTime,
@@ -227,7 +248,7 @@ class Tweet extends Document {
   @override
   List<Count> get counts => [
         Count(
-          countDocument: data.user,
+          countDocument: data.user.reference,
           countField: 'tweetsCount',
         ),
       ];
@@ -258,14 +279,39 @@ class Tweet extends Document {
     String dynamicLink,
   }) {
     return Tweet._(
-      user: user ?? data.user,
-      userName: userName ?? data.userName,
+      user: data.user?.copyWith(reference: user, userName: userName),
       tweetText: tweetText ?? data.tweetText,
       likesSum: likesSum ?? data.likesSum,
       creationTime: creationTime ?? data.creationTime,
       hotness: hotness ?? data.hotness,
       dynamicLink: dynamicLink ?? data.dynamicLink,
     );
+  }
+}
+
+class _LikeTweet {
+  final DocumentReference reference;
+
+  _LikeTweet({
+    @required this.reference,
+  });
+
+  _LikeTweet copyWith({
+    DocumentReference reference,
+  }) {
+    return _LikeTweet(reference: reference ?? this.reference);
+  }
+}
+
+class _LikeUser {
+  final DocumentReference reference;
+
+  _LikeUser({@required this.reference});
+
+  _LikeUser copyWith({
+    DocumentReference reference,
+  }) {
+    return _LikeUser(reference: reference ?? this.reference);
   }
 }
 
@@ -276,25 +322,25 @@ class _LikeData {
     this.tweet,
   });
   final int likeValue;
-  final DocumentReference user;
-  final DocumentReference tweet;
+  final _LikeUser user;
+  final _LikeTweet tweet;
 }
 
 class Like extends Document {
   Like({
     int likeValue,
-    @required DocumentReference user,
-    @required DocumentReference tweet,
+    @required User user,
+    @required Tweet tweet,
   }) : data = _LikeData(
           likeValue: likeValue,
-          user: user,
-          tweet: tweet,
+          user: _LikeUser(reference: user.reference),
+          tweet: _LikeTweet(reference: tweet.reference),
         );
 
   Like._({
     int likeValue,
-    DocumentReference user,
-    DocumentReference tweet,
+    _LikeUser user,
+    _LikeTweet tweet,
   }) : data = _LikeData(
           likeValue: likeValue,
           user: user,
@@ -309,7 +355,10 @@ class Like extends Document {
   @override
   Like fromMap(Map<String, dynamic> data) {
     return Like._(
-        likeValue: data['likeValue'], user: data['user'], tweet: data['tweet']);
+      likeValue: data['likeValue'],
+      user: _LikeUser(reference: data['user']['reference']),
+      tweet: _LikeTweet(reference: data['tweet']['reference']),
+    );
   }
 
   @override
@@ -321,8 +370,12 @@ class Like extends Document {
   Map<String, dynamic> toDataMap() {
     return {
       'likeValue': data.likeValue,
-      'user': data.user,
-      'tweet': data.tweet,
+      'user': {
+        'reference': data.user.reference,
+      },
+      'tweet': {
+        'reference': data.tweet.reference,
+      }
     };
   }
 
@@ -339,7 +392,7 @@ class Like extends Document {
   List<Sum> get sums => [
         Sum(
           field: 'likeValue',
-          sumDocument: data.tweet,
+          sumDocument: data.tweet.reference,
           sumField: 'likesSum',
         ),
       ];
@@ -352,8 +405,8 @@ class Like extends Document {
 
   @override
   List<String> get keys => [
-        data?.user?.id,
-        data?.tweet?.id,
+        data?.user?.reference?.id,
+        data?.tweet?.reference?.id,
       ];
 
   @override
@@ -373,8 +426,8 @@ class Like extends Document {
   }) {
     return Like._(
       likeValue: likeValue ?? data.likeValue,
-      user: user ?? data.user,
-      tweet: tweet ?? data.tweet,
+      user: data.user.copyWith(reference: user),
+      tweet: data.tweet.copyWith(reference: tweet),
     );
   }
 }
