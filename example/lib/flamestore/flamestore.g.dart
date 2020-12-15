@@ -5,40 +5,38 @@ import 'package:flutter/widgets.dart';
 
 class _UserData {
   _UserData({
-    this.uid,
     this.userName,
     this.bio,
     this.tweetsCount,
+    this.uid,
   });
-  final String uid;
   final String userName;
   final String bio;
   final int tweetsCount;
+  final String uid;
 }
 
 class User extends Document {
   User({
-    @required String uid,
-    String userName,
+    @required String userName,
     String bio,
+    @required String uid,
   }) : data = _UserData(
-          uid: uid,
           userName: userName,
           bio: bio,
+          uid: uid,
         );
-
   User._({
-    String uid,
     String userName,
     String bio,
     int tweetsCount,
+    String uid,
   }) : data = _UserData(
-          uid: uid,
           userName: userName,
           bio: bio,
           tweetsCount: tweetsCount,
+          uid: uid,
         );
-
   final _UserData data;
 
   @override
@@ -47,10 +45,11 @@ class User extends Document {
   @override
   User fromMap(Map<String, dynamic> data) {
     return User._(
-        uid: data['uid'],
-        userName: data['userName'],
-        bio: data['bio'],
-        tweetsCount: data['tweetsCount']);
+      userName: data['userName'],
+      bio: data['bio'],
+      tweetsCount: data['tweetsCount'],
+      uid: data['uid'],
+    );
   }
 
   @override
@@ -63,19 +62,19 @@ class User extends Document {
   @override
   Map<String, dynamic> toDataMap() {
     return {
-      'uid': data.uid,
       'userName': data.userName,
       'bio': data.bio,
       'tweetsCount': data.tweetsCount,
+      'uid': data.uid,
     };
   }
 
   @override
   List<String> firestoreCreateFields() {
     return [
-      'uid',
       'userName',
       'bio',
+      'uid',
     ];
   }
 
@@ -102,16 +101,16 @@ class User extends Document {
   }
 
   User copyWith({
-    String uid,
     String userName,
     String bio,
     int tweetsCount,
+    String uid,
   }) {
     return User._(
-      uid: uid ?? data.uid,
       userName: userName ?? data.userName,
       bio: bio ?? data.bio,
       tweetsCount: tweetsCount ?? data.tweetsCount,
+      uid: uid ?? data.uid,
     );
   }
 }
@@ -155,18 +154,17 @@ class _TweetData {
 
 class Tweet extends Document {
   Tweet({
-    User user,
-    String tweetText,
+    @required User user,
+    @required String tweetText,
     String dynamicLink,
   }) : data = _TweetData(
           user: _TweetUser(
-            reference: user?.reference,
-            userName: user?.data?.userName,
+            reference: user.reference,
+            userName: user.data.userName,
           ),
           tweetText: tweetText,
           dynamicLink: dynamicLink,
         );
-
   Tweet._({
     _TweetUser user,
     String tweetText,
@@ -182,7 +180,6 @@ class Tweet extends Document {
           hotness: hotness,
           dynamicLink: dynamicLink,
         );
-
   final _TweetData data;
 
   @override
@@ -191,17 +188,18 @@ class Tweet extends Document {
   @override
   Tweet fromMap(Map<String, dynamic> data) {
     return Tweet._(
-        user: _TweetUser(
-          reference: data['user']['reference'],
-          userName: data['user']['userName'],
-        ),
-        tweetText: data['tweetText'],
-        likesSum: data['likesSum'],
-        creationTime: data['creationTime'] is DateTime
-            ? data['creationTime']
-            : data['creationTime']?.toDate(),
-        hotness: data['hotness']?.toDouble(),
-        dynamicLink: data['dynamicLink']);
+      user: _TweetUser(
+        reference: data['user']['reference'],
+        userName: data['user']['userName'],
+      ),
+      tweetText: data['tweetText'],
+      likesSum: data['likesSum'],
+      creationTime: data['creationTime'] is DateTime
+          ? data['creationTime']
+          : data['creationTime']?.toDate(),
+      hotness: data['hotness']?.toDouble(),
+      dynamicLink: data['dynamicLink'],
+    );
   }
 
   @override
@@ -237,7 +235,6 @@ class Tweet extends Document {
     return [
       'user',
       'tweetText',
-      'hotness',
       'dynamicLink',
     ];
   }
@@ -270,8 +267,7 @@ class Tweet extends Document {
   }
 
   Tweet copyWith({
-    DocumentReference user,
-    String userName,
+    User user,
     String tweetText,
     int likesSum,
     DateTime creationTime,
@@ -279,7 +275,11 @@ class Tweet extends Document {
     String dynamicLink,
   }) {
     return Tweet._(
-      user: data.user?.copyWith(reference: user, userName: userName),
+      user: _TweetUser(
+            reference: user.reference,
+            userName: user.data.userName,
+          ) ??
+          data.user,
       tweetText: tweetText ?? data.tweetText,
       likesSum: likesSum ?? data.likesSum,
       creationTime: creationTime ?? data.creationTime,
@@ -290,63 +290,71 @@ class Tweet extends Document {
 }
 
 class _LikeTweet {
-  final DocumentReference reference;
-
   _LikeTweet({
     @required this.reference,
   });
 
+  final DocumentReference reference;
+
   _LikeTweet copyWith({
     DocumentReference reference,
   }) {
-    return _LikeTweet(reference: reference ?? this.reference);
+    return _LikeTweet(
+      reference: reference ?? this.reference,
+    );
   }
 }
 
 class _LikeUser {
-  final DocumentReference reference;
+  _LikeUser({
+    @required this.reference,
+  });
 
-  _LikeUser({@required this.reference});
+  final DocumentReference reference;
 
   _LikeUser copyWith({
     DocumentReference reference,
   }) {
-    return _LikeUser(reference: reference ?? this.reference);
+    return _LikeUser(
+      reference: reference ?? this.reference,
+    );
   }
 }
 
 class _LikeData {
   _LikeData({
     this.likeValue,
-    this.user,
     this.tweet,
+    this.user,
   });
   final int likeValue;
-  final _LikeUser user;
   final _LikeTweet tweet;
+  final _LikeUser user;
 }
 
 class Like extends Document {
   Like({
-    int likeValue,
-    @required User user,
+    @required int likeValue,
     @required Tweet tweet,
+    @required User user,
   }) : data = _LikeData(
           likeValue: likeValue,
-          user: _LikeUser(reference: user.reference),
-          tweet: _LikeTweet(reference: tweet.reference),
+          tweet: _LikeTweet(
+            reference: tweet.reference,
+          ),
+          user: _LikeUser(
+            reference: user.reference,
+          ),
         );
-
   Like._({
     int likeValue,
-    _LikeUser user,
     _LikeTweet tweet,
+    _LikeUser user,
   }) : data = _LikeData(
           likeValue: likeValue,
-          user: user,
           tweet: tweet,
+          user: user,
         );
-
   final _LikeData data;
 
   @override
@@ -356,8 +364,12 @@ class Like extends Document {
   Like fromMap(Map<String, dynamic> data) {
     return Like._(
       likeValue: data['likeValue'],
-      user: _LikeUser(reference: data['user']['reference']),
-      tweet: _LikeTweet(reference: data['tweet']['reference']),
+      tweet: _LikeTweet(
+        reference: data['tweet']['reference'],
+      ),
+      user: _LikeUser(
+        reference: data['user']['reference'],
+      ),
     );
   }
 
@@ -370,12 +382,12 @@ class Like extends Document {
   Map<String, dynamic> toDataMap() {
     return {
       'likeValue': data.likeValue,
+      'tweet': {
+        'reference': data.tweet.reference,
+      },
       'user': {
         'reference': data.user.reference,
       },
-      'tweet': {
-        'reference': data.tweet.reference,
-      }
     };
   }
 
@@ -383,8 +395,8 @@ class Like extends Document {
   List<String> firestoreCreateFields() {
     return [
       'likeValue',
-      'user',
       'tweet',
+      'user',
     ];
   }
 
@@ -405,8 +417,8 @@ class Like extends Document {
 
   @override
   List<String> get keys => [
-        data?.user?.reference?.id,
-        data?.tweet?.reference?.id,
+        data.user.reference.id,
+        data.tweet.reference.id,
       ];
 
   @override
@@ -421,23 +433,31 @@ class Like extends Document {
 
   Like copyWith({
     int likeValue,
-    DocumentReference user,
-    DocumentReference tweet,
+    Tweet tweet,
+    User user,
   }) {
     return Like._(
       likeValue: likeValue ?? data.likeValue,
-      user: data.user.copyWith(reference: user),
-      tweet: data.tweet.copyWith(reference: tweet),
+      tweet: _LikeTweet(
+            reference: tweet.reference,
+          ) ??
+          data.tweet,
+      user: _LikeUser(
+            reference: user.reference,
+          ) ??
+          data.user,
     );
   }
 }
 
-final config = FlamestoreConfig(projects: {
-  'flamestore': ProjectConfig(
-    dynamicLinkDomain: 'flamestore.page.link',
-    androidPackageName: 'com.example.flamestore_example',
-  )
-});
+final config = FlamestoreConfig(
+  projects: {
+    'flamestore': ProjectConfig(
+      dynamicLinkDomain: 'flamestore.page.link',
+      androidPackageName: 'com.example.flamestore_example',
+    ),
+  },
+);
 
 Map<String, Widget Function(Document)> dynamicLinkBuilders({
   @required Widget Function(Tweet tweet) tweetBuilder,

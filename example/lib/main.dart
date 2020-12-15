@@ -214,7 +214,11 @@ class LikeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keyLike = Like(user: user, tweet: tweet);
+    final keyLike = Like(
+      user: user,
+      tweet: tweet,
+      likeValue: 0,
+    );
     return DocumentBuilder<Like>(
       keyDocument: keyLike,
       allowNull: true,
