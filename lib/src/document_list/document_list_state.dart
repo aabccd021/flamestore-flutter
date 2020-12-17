@@ -1,7 +1,7 @@
 part of '../../flamestore.dart';
 
 class DocumentListState {
-  DocumentListState(this.hasMore, this.documents);
+  DocumentListState(this.hasMore, this.docs);
   final bool hasMore;
-  final List<DocumentReference> documents;
+  final List<DocumentReference> docs;
 }

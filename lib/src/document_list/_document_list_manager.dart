@@ -13,19 +13,17 @@ class _DocumentListManager {
   final _FlamestoreUtil _;
 
   Future<List<T>> get<T extends Document>(DocumentListKey<T> list) async {
-    final colName = _.colNameOf(T);
+    final colName = _.colNameOfList(list);
     _createIfAbsent(list);
     final oldList = _state[list].value;
     final snapshots = await _db.get<T>(list, oldList.lastDoc);
     if (snapshots.isEmpty) {
       _updateState(list, hasMore: false);
     } else {
-      final newReferences = snapshots.map((snapshot) => snapshot.reference);
-      _updateState(
-        list,
-        lastDoc: snapshots[snapshots.length - 1],
-        refs: [...oldList.references, ...newReferences],
-      );
+      final newRefs = snapshots.map((snapshot) => snapshot.reference);
+      final toUpdateRefs = [...oldList.refs, ...newRefs];
+      final lastDoc = snapshots[snapshots.length - 1];
+      _updateState(list, lastDoc: lastDoc, refs: toUpdateRefs);
     }
     return snapshots
         .map((snapshot) => _.docFromSnapshot(snapshot, colName))
@@ -46,19 +44,19 @@ class _DocumentListManager {
 
   void addReference(DocumentReference ref, List<DocumentListKey> lists) {
     for (final list in lists) {
-      final oldRefs = _state[list].value.references;
+      final oldRefs = _state[list].value.refs;
       // avoid duplicate references in list
       if (!oldRefs.map((e) => e.path).contains(ref.path)) {
-        final prependedRefs = [ref, ...oldRefs];
-        _updateState(list, refs: prependedRefs);
+        final toUpdateRefs = [ref, ...oldRefs];
+        _updateState(list, refs: toUpdateRefs);
       }
     }
   }
 
-  void deleteReference(DocumentReference reference) {
+  void deleteReference(DocumentReference ref) {
     for (final list in _state.keys) {
-      final references = _state[list].value.references..remove(reference);
-      _updateState(list, refs: references);
+      final refs = _state[list].value.refs..remove(ref);
+      _updateState(list, refs: refs);
     }
   }
 
@@ -78,7 +76,7 @@ class _DocumentListManager {
     final state = _state[list].value;
     _state[list].add(
       _DocumentListState(
-        refs: refs ?? state.references,
+        refs: refs ?? state.refs,
         lastDoc: lastDoc ?? state.lastDoc,
         hasMore: hasMore ?? state.hasMore,
       ),

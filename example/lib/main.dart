@@ -131,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(await user.getIdToken() != null);
     final firebaseCurrentUser = FirebaseAuth.instance.currentUser;
     assert(user.uid == firebaseCurrentUser.uid);
-    final userDocument = await flamestore.createDocumentIfAbsent(
+    final userDocument = await flamestore.createDocIfAbsent(
       User(
         uid: firebaseCurrentUser.uid,
         userName: 'user' + Random().nextInt(100000).toString(),
@@ -231,7 +231,7 @@ class LikeButton extends StatelessWidget {
               color: color,
               icon: Icon(Icons.favorite),
               onPressed: () {
-                flamestore.setDocument(
+                flamestore.setDoc(
                   keyLike.copyWith(likeValue: (likeValue + 1) % 5),
                   debounce: Duration(seconds: 5),
                 );
@@ -289,7 +289,7 @@ class _TweetFormState extends State<TweetForm> {
   }
 
   void onSubmitPressed() {
-    widget._flamestore.createDocument(
+    widget._flamestore.createDoc(
       Tweet(
         user: widget.user,
         tweetText: tweet,
@@ -304,5 +304,5 @@ class TweetList extends DocumentListKey<Tweet> {
   List<Object> get props => [];
 
   @override
-  Query query(CollectionReference collection) => collection;
+  Query query(col) => col;
 }

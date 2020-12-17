@@ -41,7 +41,7 @@ class User extends Document {
 
 final userDefinition = DocumentDefinition<User>(
   collectionName: 'users',
-  fromMap: (data) => User._(
+  mapToDoc: (data) => User._(
     userName: data['userName'],
     bio: data['bio'],
     tweetsCount: data['tweetsCount'],
@@ -50,7 +50,7 @@ final userDefinition = DocumentDefinition<User>(
   defaultValueMap: (document) => {
     'tweetsCount': 0,
   },
-  toDataMap: (document) {
+  docToMap: (document) {
     final userDocument = document as User;
     return {
       'userName': userDocument.userName,
@@ -59,14 +59,14 @@ final userDefinition = DocumentDefinition<User>(
       'uid': userDocument.uid,
     };
   },
-  firestoreCreateFields: (document) => [
+  creatableFields: (document) => [
     'userName',
     'bio',
     'uid',
   ],
   sums: (document) => [],
   counts: (document) => [],
-  shouldBeDeleted: (document) => false,
+  docShouldBeDeleted: (document) => false,
 );
 
 class _TweetUser {
@@ -146,7 +146,7 @@ class Tweet extends Document {
 
 final tweetDefinition = DocumentDefinition<Tweet>(
   collectionName: 'tweets',
-  fromMap: (data) => Tweet._(
+  mapToDoc: (data) => Tweet._(
     user: _TweetUser.fromMap(data['user']),
     tweetText: data['tweetText'],
     likesSum: data['likesSum'],
@@ -168,7 +168,7 @@ final tweetDefinition = DocumentDefinition<Tweet>(
       ),
     };
   },
-  toDataMap: (document) {
+  docToMap: (document) {
     final tweetDocument = document as Tweet;
     return {
       'user': tweetDocument.user.toDataMap(),
@@ -179,7 +179,7 @@ final tweetDefinition = DocumentDefinition<Tweet>(
       'dynamicLink': tweetDocument.dynamicLink,
     };
   },
-  firestoreCreateFields: (document) => [
+  creatableFields: (document) => [
     'user',
     'tweetText',
     'dynamicLink',
@@ -195,7 +195,7 @@ final tweetDefinition = DocumentDefinition<Tweet>(
       ),
     ];
   },
-  shouldBeDeleted: (document) => false,
+  docShouldBeDeleted: (document) => false,
 );
 
 class _LikeTweet {
@@ -294,13 +294,13 @@ class Like extends Document {
 
 final likeDefinition = DocumentDefinition<Like>(
   collectionName: 'likes',
-  fromMap: (data) => Like._(
+  mapToDoc: (data) => Like._(
     likeValue: data['likeValue'],
     tweet: _LikeTweet.fromMap(data['tweet']),
     user: _LikeUser.fromMap(data['user']),
   ),
   defaultValueMap: (document) => {},
-  toDataMap: (document) {
+  docToMap: (document) {
     final likeDocument = document as Like;
     return {
       'likeValue': likeDocument.likeValue,
@@ -308,7 +308,7 @@ final likeDefinition = DocumentDefinition<Like>(
       'user': likeDocument.user.toDataMap(),
     };
   },
-  firestoreCreateFields: (document) => [
+  creatableFields: (document) => [
     'likeValue',
     'tweet',
     'user',
@@ -325,7 +325,7 @@ final likeDefinition = DocumentDefinition<Like>(
     ];
   },
   counts: (document) => [],
-  shouldBeDeleted: (document) {
+  docShouldBeDeleted: (document) {
     final likeDocument = document as Like;
     return likeDocument.likeValue == 0;
   },

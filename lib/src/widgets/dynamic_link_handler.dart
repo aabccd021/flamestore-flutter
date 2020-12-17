@@ -27,10 +27,10 @@ class _DynamicLinkHandlerState extends State<DynamicLinkHandler>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      //For handling initial deeplink
+      //Handle initial deeplink
       final data = await FirebaseDynamicLinks.instance.getInitialLink();
       await _handleDynamicLink(data);
-      //For handling middle deeplink
+      //Handle middle deeplink
       FirebaseDynamicLinks.instance.onLink(onSuccess: _handleDynamicLink);
     }
   }
@@ -45,19 +45,19 @@ class _DynamicLinkHandlerState extends State<DynamicLinkHandler>
     final deepLink = dynamicLink?.link;
 
     if (deepLink != null) {
-      print('DYNAMIC LINK CALLED $deepLink');
+      print('DYNAMIC LINK OPENED $deepLink');
       widget.builders.entries.forEach(
         (builderEntry) {
-          final collection = builderEntry.key;
+          final colName = builderEntry.key;
           final builder = builderEntry.value;
-          if (deepLink.pathSegments[0] == collection) {
+          if (deepLink.pathSegments[0] == colName) {
             final id = deepLink.pathSegments[1];
-            final reference = widget._firestore.collection(collection).doc(id);
+            final ref = widget._firestore.collection(colName).doc(id);
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) {
                   return DocumentBuilder.fromReference(
-                    reference: reference,
+                    reference: ref,
                     builder: builder,
                   );
                 },

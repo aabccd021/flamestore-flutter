@@ -5,8 +5,8 @@ class _DocumentListState {
     List<DocumentReference> refs,
     this.lastDoc,
     this.hasMore = true,
-  }) : references = refs ?? [];
-  final List<DocumentReference> references;
+  }) : refs = refs ?? [];
+  final List<DocumentReference> refs;
   final DocumentSnapshot lastDoc;
   final bool hasMore;
 }

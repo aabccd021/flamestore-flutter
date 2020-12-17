@@ -10,35 +10,33 @@ class _DocumentManager {
   })  : _adapter = adapter ?? _DocumentFirestoreAdapter(_),
         _state = state ?? _DocumentState(_),
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _fetchedDocumentPaths = fetched ?? <String>{};
+        _fetchedDocPaths = fetched ?? <String>{};
 
   final _DocumentFirestoreAdapter _adapter;
   final _DocumentState _state;
   final FirebaseFirestore _firestore;
-  final Set<String> _fetchedDocumentPaths;
+  final Set<String> _fetchedDocPaths;
   final _FlamestoreUtil _;
 
   ValueStream<T> streamWherePath<T extends Document>(String path) {
-    return _state.streamWherePath<T>(
-      path,
-    );
+    return _state.streamWherePath<T>(path);
   }
 
-  void set<T extends Document>(T document, {Duration debounce}) async {
-    _state.update<T>(document, updateAggregate: true);
-    final reference = document.reference;
+  void set<T extends Document>(T doc, {Duration debounce}) async {
+    _state.update<T>(doc, doUpdateAggregate: true);
+    final reference = doc.reference;
     EasyDebounce.debounce(
       reference.path,
       debounce,
       () async {
-        final oldDocument = await get(document, true);
-        if (oldDocument == null) {
-          return create(document);
+        final oldDoc = await get(doc, true);
+        if (oldDoc == null) {
+          return create(doc);
         }
-        if (_.docShouldBeDeleted(document)) {
-          return delete(oldDocument);
+        if (_.shouldDelete(doc)) {
+          return delete(oldDoc);
         }
-        return _update(oldDocument, document);
+        return _update(oldDoc, doc);
       },
     );
   }
@@ -48,7 +46,7 @@ class _DocumentManager {
     final ref = doc.reference ?? _firestore.collection(colName).doc();
     Map<String, dynamic> newDocMap = Map<String, dynamic>();
     final docMap = {
-      ..._.mapFrom(doc),
+      ..._.mapOf(doc),
       ..._.defaultValueMapOf(doc),
     };
     for (final fieldName in docMap.keys) {
@@ -91,28 +89,27 @@ class _DocumentManager {
 
   Future<T> get<T extends Document>(T keyDoc, bool fromCache) async {
     final path = keyDoc.reference.path;
-    final onMemoryDocument = await streamWherePath<T>(
+    final onMemoryDoc = await streamWherePath<T>(
       path,
     ).first;
-    if (fromCache && _fetchedDocumentPaths.contains(path)) {
-      return onMemoryDocument;
+    if (fromCache && _fetchedDocPaths.contains(path)) {
+      return onMemoryDoc;
     }
     final snapshot = await _adapter.get(keyDoc);
-    _fetchedDocumentPaths.add(path);
+    _fetchedDocPaths.add(path);
     if (snapshot == null) {
       return null;
     }
-    final createdDocument = _.docFromSnapshot(snapshot, keyDoc.colName);
-    final T updatedDocument = onMemoryDocument != null
-        ? _.mergeDocs(onMemoryDocument, createdDocument)
-        : createdDocument;
-    await _state.update<T>(updatedDocument);
-    return updatedDocument;
+    final createdDoc = _.docFromSnapshot(snapshot, keyDoc.colName);
+    final T updatedDoc =
+        onMemoryDoc != null ? _.mergeDocs(onMemoryDoc, createdDoc) : createdDoc;
+    await _state.update<T>(updatedDoc);
+    return updatedDoc;
   }
 
-  Future<void> addFromList<T extends Document>(List<T> documents) async {
-    for (final document in documents) {
-      await _state.update<T>(document);
+  Future<void> addFromList<T extends Document>(List<T> docs) async {
+    for (final doc in docs) {
+      await _state.update<T>(doc);
     }
   }
 }

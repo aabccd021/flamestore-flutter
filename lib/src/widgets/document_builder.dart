@@ -51,7 +51,7 @@ class _DocumentBuilderState<T extends Document>
   @override
   void initState() {
     if (widget.fetchOnInit) {
-      widget._flamestore.getDocument(widget.keyDocument);
+      widget._flamestore.getDoc(widget.keyDocument);
     }
     super.initState();
   }

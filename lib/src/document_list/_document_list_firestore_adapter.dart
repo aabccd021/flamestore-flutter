@@ -10,13 +10,14 @@ class _DocumentListFirestoreAdapter {
   final _FlamestoreUtil _;
   Future<List<DocumentSnapshot>> get<T extends Document>(
     DocumentListKey<T> list,
-    DocumentSnapshot lastDocument,
+    DocumentSnapshot lastDoc,
   ) async {
-    final colName = _.colNameOf(T);
+    final colName = _.colNameOfList(list);
+
     final col = _firestore.collection(colName);
     Query query = list.query(col).limit(list.limit);
-    if (lastDocument != null) {
-      query = query.startAfterDocument(lastDocument);
+    if (lastDoc != null) {
+      query = query.startAfterDocument(lastDoc);
     }
     final snapshot = await query.get();
     return snapshot.docs;

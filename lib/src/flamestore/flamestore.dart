@@ -25,37 +25,30 @@ class Flamestore {
     return _flamestore.refreshList(list);
   }
 
-  void setDocument<T extends Document>(
-    T document, {
-    Duration debounce = Duration.zero,
-  }) {
-    return _flamestore.setDocument(document, debounce: debounce);
+  void setDoc<T extends Document>(T doc, {Duration debounce = Duration.zero}) {
+    return _flamestore.setDoc(doc, debounce: debounce);
   }
 
-  Future<T> getDocument<T extends Document>(
-    T document, {
-    bool fromCache = true,
-  }) {
-    return _flamestore.getDocument(document, fromCache: fromCache);
+  Future<T> getDoc<T extends Document>(T doc, {bool fromCache = true}) {
+    return _flamestore.getDoc(doc, fromCache: fromCache);
   }
 
-  Future<T> createDocument<T extends Document>(
-    T document, {
+  Future<T> createDoc<T extends Document>(
+    T doc, {
     List<DocumentListKey<T>> appendOnLists,
   }) {
-    return _flamestore.createDocument(document, appendOnLists: appendOnLists);
+    return _flamestore.createDoc(doc, appendOnLists: appendOnLists);
   }
 
-  Future<T> createDocumentIfAbsent<T extends Document>(T document) {
-    return _flamestore.createDocumentIfAbsent(document);
+  Future<T> createDocIfAbsent<T extends Document>(T doc) {
+    return _flamestore.createDocIfAbsent(doc);
   }
 
-  Future<void> deleteDocument<T extends Document>(T document) {
-    return _flamestore.deleteDocument(document);
+  Future<void> deleteDocument<T extends Document>(T doc) {
+    return _flamestore.deleteDoc(doc);
   }
 
   ValueStream<T> _docStreamWherePath<T extends Document>(String path) {
     return _flamestore.docStreamWherePath<T>(path);
   }
-
 }

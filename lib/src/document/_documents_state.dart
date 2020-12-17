@@ -14,64 +14,58 @@ class _DocumentState {
 
   ValueStream<T> streamWherePath<T extends Document>(String path) {
     return _mapStream
-        .switchMap((documentsSet) => Rx.combineLatestList(documentsSet.values)
+        .switchMap((docsSet) => Rx.combineLatestList(docsSet.values)
             .defaultIfEmpty([null])
-            .map((documents) => documents
+            .map((docs) => docs
                 .whereType<T>()
-                .firstWhere((document) => document.reference.path == path))
+                .firstWhere((doc) => doc.reference.path == path))
             .onErrorReturn(null))
         .shareValue();
   }
 
-  void update<T extends Document>(
-    T newDocument, {
-    bool updateAggregate = false,
-  }) {
-    final key = newDocument?.reference?.path;
+  void update<T extends Document>(T newDoc, {bool doUpdateAggregate = false}) {
+    final key = newDoc?.reference?.path;
     if (key == null) {
       return;
     }
+
     final isDocNew = !_map.containsKey(key) || _map[key] == null;
+
+    // Create empty stream if document is new
     if (isDocNew) {
       _mapStream.add(_map..[key] = BehaviorSubject<Document>.seeded(null));
     }
 
-    final oldDocument = _map[key].value;
+    // Save old docs and update to new data
+    final oldDoc = _map[key].value;
+    _map[key].add(newDoc);
 
-    ///
-    _map[key].add(newDocument);
-
-    if (updateAggregate) {
-      _.sums(newDocument).forEach((sum) {
-        final oldValue = isDocNew ? 0 : _.dataMapFrom(oldDocument)[sum.field];
-        final valueDiff = _.dataMapFrom(newDocument)[sum.field] - oldValue;
+    if (doUpdateAggregate) {
+      _.sumsOf(newDoc).forEach((sum) {
+        final oldValue = isDocNew ? 0 : _.dataMapOf(oldDoc)[sum.field];
+        final valueDiff = _.dataMapOf(newDoc)[sum.field] - oldValue;
         _sumOnUpdate(sum, valueDiff);
       });
-      _.counts(newDocument).forEach((count) {
-        _countOnUpdate(count, isDocNew);
-      });
+      _.countsOf(newDoc).forEach((count) => _countOnUpdate(count, isDocNew));
     }
   }
 
   void delete<T extends Document>(T document) {
     final key = document.reference.path;
-    final deletedMap = _map
+    final newMap = _map
       ..[key].close()
       ..remove(key);
-    _mapStream.add(deletedMap);
+    _mapStream.add(newMap);
 
-    //sum
-    _.sums(document).forEach((sum) => _sumOnDelete(sum, document));
-
-    ///count
-    _.counts(document).forEach((count) => _countOnDelete(count));
+    _.sumsOf(document).forEach((sum) => _sumOnDelete(sum, document));
+    _.countsOf(document).forEach((count) => _countOnDelete(count));
   }
 
   void _sumOnUpdate(Sum sum, dynamic valueDiff) {
     final sumDocumentKey = sum.sumDoc?.path;
     if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
       final oldSumDoc = _map[sumDocumentKey].value;
-      final oldSumDocumentMap = _.dataMapFrom(oldSumDoc);
+      final oldSumDocumentMap = _.dataMapOf(oldSumDoc);
       final oldSumValue = oldSumDocumentMap[sum.sumField];
       if (oldSumValue != null) {
         final newSumValue = oldSumValue + valueDiff;
@@ -87,7 +81,7 @@ class _DocumentState {
     final countDocKey = count.countDoc?.path;
     if (countDocKey != null && _map.containsKey(countDocKey) && isDocNew) {}
     final oldCountDoc = _map[countDocKey].value;
-    final oldCountDocMap = _.dataMapFrom(oldCountDoc);
+    final oldCountDocMap = _.dataMapOf(oldCountDoc);
     final oldCountVal = oldCountDocMap[count.countField];
     if (oldCountVal != null) {
       final newCountVal = oldCountVal + 1;
@@ -101,9 +95,9 @@ class _DocumentState {
   void _sumOnDelete(Sum sum, Document doc) {
     final sumDocKey = sum.sumDoc?.path;
     if (sumDocKey != null && _map.containsKey(sumDocKey)) {
-      final oldValue = _.dataMapFrom(doc)[sum.field];
+      final oldValue = _.dataMapOf(doc)[sum.field];
       final oldSumDoc = _map[sumDocKey].value;
-      final oldSumDocMap = _.dataMapFrom(oldSumDoc);
+      final oldSumDocMap = _.dataMapOf(oldSumDoc);
       final oldSumVal = oldSumDocMap[sum.sumField];
       if (oldSumVal != null) {
         final newSumVal = oldSumVal - oldValue;
@@ -119,13 +113,13 @@ class _DocumentState {
     final countDocKey = count.countDoc?.path;
     if (countDocKey != null && _map.containsKey(countDocKey)) {
       final oldCountDoc = _map[countDocKey].value;
-      final oldCountDocMap = _.dataMapFrom(oldCountDoc);
+      final oldCountDocMap = _.dataMapOf(oldCountDoc);
       final oldCountVal = oldCountDocMap[count.countField];
       if (oldCountVal != null) {
-        final newCountValue = oldCountVal - 1;
+        final newCountVal = oldCountVal - 1;
         final newCountMap = {
           ...oldCountDocMap,
-          count.countField: newCountValue
+          count.countField: newCountVal
         };
         final newCountDoc = _.docOfMap(newCountMap, count.countDocCol);
         newCountDoc..reference = oldCountDoc.reference;
