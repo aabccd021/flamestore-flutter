@@ -3,11 +3,12 @@ part of '../../flamestore.dart';
 class Sum {
   Sum({
     @required this.field,
-    @required this.sumDocument,
+    @required this.sumDoc,
     @required this.sumField,
+    @required this.sumDocCol,
   });
-
   final String field;
-  final DocumentReference sumDocument;
+  final DocumentReference sumDoc;
   final String sumField;
+  final String sumDocCol;
 }

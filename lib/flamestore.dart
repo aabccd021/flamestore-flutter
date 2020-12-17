@@ -13,6 +13,8 @@ part 'src/config/project_config.dart';
 part 'src/document/_document_firestore_adapter.dart';
 part 'src/document/_document_manager.dart';
 part 'src/document/_documents_state.dart';
+part 'src/document/_document_util.dart';
+part 'src/document/document_definition.dart';
 part 'src/document/document.dart';
 part 'src/document_list/_document_list_firestore_adapter.dart';
 part 'src/document_list/_document_list_manager.dart';

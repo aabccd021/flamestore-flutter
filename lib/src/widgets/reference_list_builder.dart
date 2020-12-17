@@ -1,6 +1,6 @@
 part of '../../flamestore.dart';
 
-class ReferenceListBuilder extends StatefulWidget {
+class ReferenceListBuilder<T extends Document> extends StatefulWidget {
   ReferenceListBuilder({
     @required this.documentListKey,
     @required this.builder,
@@ -11,15 +11,16 @@ class ReferenceListBuilder extends StatefulWidget {
         super(key: key);
 
   final Widget Function(List<DocumentReference> document, bool hasMore) builder;
-  final DocumentListKey documentListKey;
+  final DocumentListKey<T> documentListKey;
   final Flamestore _flamestore;
   final Widget onEmptyWidget;
 
   @override
-  _ListViewBuilderState createState() => _ListViewBuilderState();
+  _ListViewBuilderState<T> createState() => _ListViewBuilderState<T>();
 }
 
-class _ListViewBuilderState extends State<ReferenceListBuilder> {
+class _ListViewBuilderState<T extends Document>
+    extends State<ReferenceListBuilder<T>> {
   @override
   void initState() {
     widget._flamestore.getList(widget.documentListKey);

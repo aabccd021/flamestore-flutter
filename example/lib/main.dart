@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         builders: dynamicLinkBuilders(
           tweetBuilder: (tweet) {
             return Scaffold(
-              appBar: AppBar(title: Text(tweet.reference.id)),
+              appBar: AppBar(title: Text(tweet.reference.path)),
               body: Center(child: TweetWidget(tweet: tweet, user: null)),
             );
           },
@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: Text('Refresh List'),
               ),
               ...references.map((reference) {
-                return DocumentBuilder.fromReference(
+                return DocumentBuilder<Tweet>.fromReference(
                   reference: reference,
                   builder: (tweet) {
                     return TweetWidget(tweet: tweet, user: currentUser);
@@ -148,9 +148,9 @@ class TweetCount extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DocumentBuilder(
+    return DocumentBuilder<User>(
       keyDocument: keyUser,
-      builder: (user) => Text('TweetCount: ${user.data.tweetsCount}'),
+      builder: (user) => Text('TweetCount: ${user.tweetsCount}'),
     );
   }
 }
@@ -170,18 +170,18 @@ class TweetWidget extends StatefulWidget {
 class _TweetState extends State<TweetWidget> {
   @override
   Widget build(BuildContext context) {
-    final data = widget.tweet?.data;
+    final tweet = widget.tweet;
     return Card(
       child: Column(
         children: [
-          Text('userName: ${data?.user?.userName}'),
-          Text('tweetText: ${data?.tweetText}'),
-          Text('likes: ${data?.likesSum}'),
-          Text('creationTime: ${data?.creationTime}'),
-          if (data?.dynamicLink != null)
+          Text('userName: ${tweet?.user?.userName}'),
+          Text('tweetText: ${tweet?.tweetText}'),
+          Text('likes: ${tweet?.likesSum}'),
+          Text('creationTime: ${tweet?.creationTime}'),
+          if (tweet?.dynamicLink != null)
             ElevatedButton(
               child: Text('OPEN'),
-              onPressed: () => launch(data?.dynamicLink),
+              onPressed: () => launch(tweet?.dynamicLink),
             ),
           if (widget.user != null)
             Row(
@@ -223,7 +223,7 @@ class LikeButton extends StatelessWidget {
       keyDocument: keyLike,
       allowNull: true,
       builder: (likeDocument) {
-        final likeValue = likeDocument?.data?.likeValue ?? 0;
+        final likeValue = likeDocument?.likeValue ?? 0;
         final color = likeValue != 0 ? Colors.red : null;
         return Row(
           children: [
@@ -300,9 +300,6 @@ class _TweetFormState extends State<TweetForm> {
 }
 
 class TweetList extends DocumentListKey<Tweet> {
-  @override
-  Tweet get document => Tweet();
-
   @override
   List<Object> get props => [];
 

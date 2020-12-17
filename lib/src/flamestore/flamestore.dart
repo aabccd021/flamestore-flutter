@@ -5,19 +5,19 @@ class Flamestore {
   static final Flamestore _instance = Flamestore._privateConstructor();
   static Flamestore get instance => _instance;
 
-  final _Flamestore _flamestore = _Flamestore();
+  _Flamestore _flamestore;
 
   Future<void> initialize(FlamestoreConfig projectConfig) async {
-    return _flamestore.initialize(projectConfig);
+    return _flamestore = _Flamestore(_FlamestoreUtil(projectConfig));
   }
 
-  Future<void> getList<T extends Document, V extends DocumentListKey<T>>(
+  Future<void> getList<T extends Document>(DocumentListKey<T> list) {
+    return _flamestore.getList<T>(list);
+  }
+
+  ValueStream<DocumentListState> _streamOfList<T extends Document>(
     DocumentListKey<T> list,
   ) {
-    return _flamestore.getList<T, V>(list);
-  }
-
-  ValueStream<DocumentListState> _streamOfList(DocumentListKey list) {
     return _flamestore.streamOfList(list);
   }
 
@@ -29,10 +29,7 @@ class Flamestore {
     T document, {
     Duration debounce = Duration.zero,
   }) {
-    return _flamestore.setDocument(
-      document,
-      debounce: debounce,
-    );
+    return _flamestore.setDocument(document, debounce: debounce);
   }
 
   Future<T> getDocument<T extends Document>(
@@ -60,4 +57,5 @@ class Flamestore {
   ValueStream<T> _docStreamWherePath<T extends Document>(String path) {
     return _flamestore.docStreamWherePath<T>(path);
   }
+
 }

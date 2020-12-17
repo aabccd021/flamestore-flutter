@@ -1,33 +1,34 @@
 part of '../../flamestore.dart';
 
 class _DocumentListManager {
-  _DocumentListManager({
+  _DocumentListManager(
+    this._, {
     _DocumentListFirestoreAdapter adapter,
     Map<DocumentListKey, BehaviorSubject<_DocumentListState>> map,
-  })  : _db = adapter ?? _DocumentListFirestoreAdapter(),
+  })  : _db = adapter ?? _DocumentListFirestoreAdapter(_),
         _state = map ?? {};
 
   final Map<DocumentListKey, BehaviorSubject<_DocumentListState>> _state;
   final _DocumentListFirestoreAdapter _db;
+  final _FlamestoreUtil _;
 
-  Future<List<T>> get<T extends Document, V extends DocumentListKey<T>>(
-    V list,
-  ) async {
+  Future<List<T>> get<T extends Document>(DocumentListKey<T> list) async {
+    final colName = _.colNameOf(T);
     _createIfAbsent(list);
     final oldList = _state[list].value;
-    final snapshots = await _db.get(list, oldList.lastDocument);
+    final snapshots = await _db.get<T>(list, oldList.lastDoc);
     if (snapshots.isEmpty) {
       _updateState(list, hasMore: false);
     } else {
       final newReferences = snapshots.map((snapshot) => snapshot.reference);
       _updateState(
         list,
-        lastDocument: snapshots[snapshots.length - 1],
-        references: [...oldList.references, ...newReferences],
+        lastDoc: snapshots[snapshots.length - 1],
+        refs: [...oldList.references, ...newReferences],
       );
     }
     return snapshots
-        .map((snapshot) => list.document.fromSnapshot(snapshot))
+        .map((snapshot) => _.docFromSnapshot(snapshot, colName))
         .cast<T>()
         .toList();
   }
@@ -37,26 +38,19 @@ class _DocumentListManager {
     return _state[list];
   }
 
-  Future<List<T>> refresh<T extends Document, V extends DocumentListKey<T>>(
-    V list,
-  ) async {
+  Future<List<T>> refresh<T extends Document>(DocumentListKey<T> list) async {
     _createIfAbsent(list);
     _state[list].add(_DocumentListState());
     return get(list);
   }
 
-  void addReference(
-    DocumentReference reference,
-    List<DocumentListKey> lists,
-  ) {
+  void addReference(DocumentReference ref, List<DocumentListKey> lists) {
     for (final list in lists) {
-      final oldReferences = _state[list].value.references;
+      final oldRefs = _state[list].value.references;
       // avoid duplicate references in list
-      if (!oldReferences.map((ref) => ref.path).contains(reference.path)) {
-        _updateState(
-          list,
-          references: [reference, ...oldReferences],
-        );
+      if (!oldRefs.map((e) => e.path).contains(ref.path)) {
+        final prependedRefs = [ref, ...oldRefs];
+        _updateState(list, refs: prependedRefs);
       }
     }
   }
@@ -64,7 +58,7 @@ class _DocumentListManager {
   void deleteReference(DocumentReference reference) {
     for (final list in _state.keys) {
       final references = _state[list].value.references..remove(reference);
-      _updateState(list, references: references);
+      _updateState(list, refs: references);
     }
   }
 
@@ -76,16 +70,16 @@ class _DocumentListManager {
 
   void _updateState(
     DocumentListKey list, {
-    List<DocumentReference> references,
-    DocumentSnapshot lastDocument,
+    List<DocumentReference> refs,
+    DocumentSnapshot lastDoc,
     bool hasMore,
   }) {
     _createIfAbsent(list);
     final state = _state[list].value;
     _state[list].add(
       _DocumentListState(
-        references: references ?? state.references,
-        lastDocument: lastDocument ?? state.lastDocument,
+        refs: refs ?? state.references,
+        lastDoc: lastDoc ?? state.lastDoc,
         hasMore: hasMore ?? state.hasMore,
       ),
     );

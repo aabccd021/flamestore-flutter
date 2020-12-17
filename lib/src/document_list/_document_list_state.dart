@@ -2,11 +2,11 @@ part of '../../flamestore.dart';
 
 class _DocumentListState {
   _DocumentListState({
-    List<DocumentReference> references,
-    this.lastDocument,
+    List<DocumentReference> refs,
+    this.lastDoc,
     this.hasMore = true,
-  }) : references = references ?? [];
+  }) : references = refs ?? [];
   final List<DocumentReference> references;
-  final DocumentSnapshot lastDocument;
+  final DocumentSnapshot lastDoc;
   final bool hasMore;
 }

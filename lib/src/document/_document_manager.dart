@@ -1,37 +1,41 @@
 part of '../../flamestore.dart';
 
 class _DocumentManager {
-  _DocumentManager({
-    _DocumentsState state,
+  _DocumentManager(
+    this._, {
+    _DocumentState state,
     _DocumentFirestoreAdapter adapter,
     FirebaseFirestore firestore,
     Map<Document, DocumentReference> fetched,
-  })  : _db = adapter ?? _DocumentFirestoreAdapter(),
-        _state = state ?? _DocumentsState(),
+  })  : _adapter = adapter ?? _DocumentFirestoreAdapter(_),
+        _state = state ?? _DocumentState(_),
         _firestore = firestore ?? FirebaseFirestore.instance,
         _fetchedDocumentPaths = fetched ?? <String>{};
 
-  final _DocumentFirestoreAdapter _db;
-  final _DocumentsState _state;
+  final _DocumentFirestoreAdapter _adapter;
+  final _DocumentState _state;
   final FirebaseFirestore _firestore;
   final Set<String> _fetchedDocumentPaths;
-  FlamestoreConfig config;
+  final _FlamestoreUtil _;
 
   ValueStream<T> streamWherePath<T extends Document>(String path) {
-    return _state.streamWherePath<T>(path);
+    return _state.streamWherePath<T>(
+      path,
+    );
   }
 
   void set<T extends Document>(T document, {Duration debounce}) async {
     _state.update<T>(document, updateAggregate: true);
+    final reference = document.reference;
     EasyDebounce.debounce(
-      document.reference.path,
+      reference.path,
       debounce,
       () async {
         final oldDocument = await get(document, true);
         if (oldDocument == null) {
           return create(document);
         }
-        if (document.shouldBeDeleted) {
+        if (_.docShouldBeDeleted(document)) {
           return delete(oldDocument);
         }
         return _update(oldDocument, document);
@@ -39,66 +43,68 @@ class _DocumentManager {
     );
   }
 
-  Future<T> create<T extends Document>(T document) async {
-    final collectionName = document.collectionName;
-    final reference =
-        document.reference ?? _firestore.collection(collectionName).doc();
-    Map<String, dynamic> newDocumentMap = Map<String, dynamic>();
-    final documentMap = {
-      ...document.toMap(),
-      ...document.defaultValueMap,
+  Future<T> create<T extends Document>(T doc) async {
+    final colName = doc.colName;
+    final ref = doc.reference ?? _firestore.collection(colName).doc();
+    Map<String, dynamic> newDocMap = Map<String, dynamic>();
+    final docMap = {
+      ..._.mapFrom(doc),
+      ..._.defaultValueMapOf(doc),
     };
-    for (final fieldName in documentMap.keys) {
-      final field = documentMap[fieldName];
+    for (final fieldName in docMap.keys) {
+      final field = docMap[fieldName];
       if (field is DynamicLinkField) {
-        newDocumentMap[fieldName] = await _createDynamicLink(
-          collectionName,
-          reference.id,
+        newDocMap[fieldName] = await _adapter.createDynamicLink(
+          colName,
+          ref.id,
           field,
         );
       } else {
-        newDocumentMap[fieldName] = field;
+        newDocMap[fieldName] = field;
       }
     }
-    final newDocument = document.fromMap(newDocumentMap);
-    if (newDocument.reference != null) {
-      _state.update<T>(newDocument);
+    final newDoc = _.docOfMap(newDocMap, colName);
+    if (newDoc.reference != null) {
+      _state.update<T>(newDoc);
     }
-    await _db.create(reference, newDocument);
-    newDocument.reference = reference;
-    _state.update<T>(newDocument);
-    return newDocument;
+    await _adapter.create(ref, newDoc);
+    newDoc..reference = ref;
+    _state.update<T>(newDoc);
+    return newDoc;
   }
 
-  Future<T> _update<T extends Document>(T oldDocument, T newDocument) async {
-    final mergedDocument = oldDocument.mergeDataWith(newDocument);
-    _state.update<T>(mergedDocument);
-    await _db.update(oldDocument.reference, newDocument);
-    return mergedDocument;
+  Future<T> _update<T extends Document>(T oldDoc, T newDoc) async {
+    final mergedDoc = _.mergeDocs(oldDoc, newDoc);
+    _state.update<T>(mergedDoc);
+    await _adapter.update(oldDoc.reference, newDoc);
+    return mergedDoc;
   }
 
-  Future<void> delete<T extends Document>(T oldDocument) async {
-    await _state.delete(oldDocument);
-    await _db.delete(oldDocument);
+  Future<void> delete<T extends Document>(T oldDoc) async {
+    await _state.delete(oldDoc);
+    await _adapter.delete(oldDoc);
   }
 
-  Future<T> createIfAbsent<T extends Document>(T document) async {
-    return await get(document, false) ?? await create(document);
+  Future<T> createIfAbsent<T extends Document>(T doc) async {
+    return await get(doc, false) ?? await create(doc);
   }
 
-  Future<T> get<T extends Document>(T keyDocument, bool fromCache) async {
-    final path = keyDocument.reference.path;
-    final onMemoryDocument = await streamWherePath<T>(path).first;
+  Future<T> get<T extends Document>(T keyDoc, bool fromCache) async {
+    final path = keyDoc.reference.path;
+    final onMemoryDocument = await streamWherePath<T>(
+      path,
+    ).first;
     if (fromCache && _fetchedDocumentPaths.contains(path)) {
       return onMemoryDocument;
     }
-    final createdDocument = await _db.get(keyDocument);
+    final snapshot = await _adapter.get(keyDoc);
     _fetchedDocumentPaths.add(path);
-    if (createdDocument == null) {
+    if (snapshot == null) {
       return null;
     }
+    final createdDocument = _.docFromSnapshot(snapshot, keyDoc.colName);
     final T updatedDocument = onMemoryDocument != null
-        ? onMemoryDocument.mergeDataWith(createdDocument)
+        ? _.mergeDocs(onMemoryDocument, createdDocument)
         : createdDocument;
     await _state.update<T>(updatedDocument);
     return updatedDocument;
@@ -108,43 +114,5 @@ class _DocumentManager {
     for (final document in documents) {
       await _state.update<T>(document);
     }
-  }
-
-  Future<String> _createDynamicLink(
-    String collectionName,
-    String id,
-    DynamicLinkField field,
-  ) async {
-    assert(config != null && config.projects != null);
-    final projectId = _firestore.app.options.projectId;
-    final project = config.projects[projectId];
-    final domain = project.domain ?? '${projectId}.web.app';
-    final dynamicLinkDomain = project.dynamicLinkDomain ?? '${domain}/links';
-    final isSuffixShort = field.isSuffixShort ?? false;
-    final DynamicLinkParameters parameters = DynamicLinkParameters(
-      uriPrefix: 'https://$dynamicLinkDomain',
-      link: Uri.parse('https://$domain/$collectionName/$id'),
-      androidParameters: AndroidParameters(
-        packageName: project.androidPackageName,
-      ),
-      socialMetaTagParameters: SocialMetaTagParameters(
-        title: field.title,
-        description: field.description,
-        imageUrl: field.imageUrl == null ? null : Uri.parse(field.imageUrl),
-      ),
-      googleAnalyticsParameters: GoogleAnalyticsParameters(
-        campaign: '$collectionName',
-        medium: 'dynamic-link',
-        source: 'flamestore-dynamic-link',
-      ),
-      dynamicLinkParametersOptions: DynamicLinkParametersOptions(
-        shortDynamicLinkPathLength:
-            isSuffixShort ? ShortDynamicLinkPathLength.short : null,
-      ),
-    );
-    final ShortDynamicLink dynamicUrl = await parameters.buildShortLink();
-    final shortUrl = dynamicUrl.shortUrl.toString();
-    print('CREATED DYNAMIC LINK $shortUrl');
-    return shortUrl;
   }
 }

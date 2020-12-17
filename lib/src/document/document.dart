@@ -7,60 +7,20 @@ abstract class Document {
   DocumentReference _reference;
   String _id = '';
 
-  @protected
-  String get collectionName;
+  String get colName;
 
-  @protected
-  Map<String, dynamic> get defaultValueMap;
-
-  @protected
-  Document fromMap(Map<String, dynamic> data);
-
-  @protected
-  Map<String, dynamic> toDataMap();
-
-  @protected
-  List<String> firestoreCreateFields();
-
-  @protected
-  bool get shouldBeDeleted;
+  set reference(DocumentReference reference) => _reference = reference;
 
   @protected
   List<String> get keys;
 
-  @protected
-  set reference(DocumentReference reference) => _reference = reference;
-
-  @protected
-  List<Sum> get sums;
-
-  @protected
-  List<Count> get counts;
-
-  set id(String id) => _id = id;
-
   DocumentReference get reference {
     if (keys.isNotEmpty) {
-      return _firestore.collection(collectionName).doc(keys.join('_'));
+      return _firestore.collection(colName).doc(keys.join('_'));
     }
     if (_id.isNotEmpty) {
-      return _firestore.collection(collectionName).doc(_id);
+      return _firestore.collection(colName).doc(_id);
     }
     return _reference;
-  }
-
-  Map<String, dynamic> toMap() => {...toDataMap(), 'reference': reference};
-
-  @mustCallSuper
-  @protected
-  Document mergeDataWith(Document other) {
-    return fromMap({...toMap(), ...other.toMap()})
-      ..reference = other.reference ?? reference;
-  }
-
-  @mustCallSuper
-  @protected
-  Document fromSnapshot(DocumentSnapshot snapshot) {
-    return fromMap(snapshot.data())..reference = snapshot.reference;
   }
 }
