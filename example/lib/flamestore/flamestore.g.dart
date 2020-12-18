@@ -120,7 +120,7 @@ class Tweet extends Document {
   Tweet({
     @required User user,
     @required this.tweetText,
-    @required this.dynamicLink,
+    this.dynamicLink,
   }) : user = _TweetUser.fromUser(user: user);
   Tweet._({
     this.user,
