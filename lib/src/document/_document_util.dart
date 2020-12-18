@@ -71,7 +71,7 @@ class _FlamestoreUtil {
 
   List<String> creatableFields(Document document) {
     final def = defOf[document.colName];
-    return def.creatableFields(document);
+    return def.creatableFields();
   }
 
   List<Sum> sumsOf(Document document) {

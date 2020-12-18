@@ -62,7 +62,7 @@ class _DocumentState {
   }
 
   void _sumOnUpdate(Sum sum, dynamic valueDiff) {
-    final sumDocumentKey = sum.sumDoc?.path;
+    final sumDocumentKey = sum.sumDocRef?.path;
     if (sumDocumentKey != null && _map.containsKey(sumDocumentKey)) {
       final oldSumDoc = _map[sumDocumentKey].value;
       final oldSumDocumentMap = _.dataMapOf(oldSumDoc);
@@ -78,7 +78,7 @@ class _DocumentState {
   }
 
   void _countOnUpdate<T extends Document>(Count count, bool isDocNew) {
-    final countDocKey = count.countDoc?.path;
+    final countDocKey = count.countDocRef?.path;
     if (countDocKey != null && _map.containsKey(countDocKey) && isDocNew) {}
     final oldCountDoc = _map[countDocKey].value;
     final oldCountDocMap = _.dataMapOf(oldCountDoc);
@@ -93,7 +93,7 @@ class _DocumentState {
   }
 
   void _sumOnDelete(Sum sum, Document doc) {
-    final sumDocKey = sum.sumDoc?.path;
+    final sumDocKey = sum.sumDocRef?.path;
     if (sumDocKey != null && _map.containsKey(sumDocKey)) {
       final oldValue = _.dataMapOf(doc)[sum.field];
       final oldSumDoc = _map[sumDocKey].value;
@@ -110,7 +110,7 @@ class _DocumentState {
   }
 
   void _countOnDelete(Count count) {
-    final countDocKey = count.countDoc?.path;
+    final countDocKey = count.countDocRef?.path;
     if (countDocKey != null && _map.containsKey(countDocKey)) {
       final oldCountDoc = _map[countDocKey].value;
       final oldCountDocMap = _.dataMapOf(oldCountDoc);

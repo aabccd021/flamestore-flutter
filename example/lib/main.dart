@@ -290,10 +290,7 @@ class _TweetFormState extends State<TweetForm> {
 
   void onSubmitPressed() {
     widget._flamestore.createDoc(
-      Tweet(
-        user: widget.user,
-        tweetText: tweet,
-      ),
+      Tweet(user: widget.user, tweetText: tweet),
       appendOnLists: [TweetList()],
     );
   }
