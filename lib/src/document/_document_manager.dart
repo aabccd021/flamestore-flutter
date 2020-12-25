@@ -6,81 +6,75 @@ class _DocumentManager {
     _DocumentState state,
     _DocumentFirestoreAdapter adapter,
     FirebaseFirestore firestore,
-    Map<Document, DocumentReference> fetched,
-  })  : _adapter = adapter ?? _DocumentFirestoreAdapter(_),
+    Map<Document, DocumentReference> fetchedDocPaths,
+    Map<String, Document> debouncedDocs,
+  })  : _firebase = adapter ?? _DocumentFirestoreAdapter(_),
         _state = state ?? _DocumentState(_),
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _fetchedDocPaths = fetched ?? <String>{};
+        _fetchedDocPaths = fetchedDocPaths ?? <String>{},
+        _debouncedDocs = debouncedDocs ?? {};
 
-  final _DocumentFirestoreAdapter _adapter;
+  final _DocumentFirestoreAdapter _firebase;
   final _DocumentState _state;
   final FirebaseFirestore _firestore;
   final Set<String> _fetchedDocPaths;
+  final Map<String, Document> _debouncedDocs;
   final _FlamestoreUtil _;
 
   ValueStream<T> streamWherePath<T extends Document>(String path) {
     return _state.streamWherePath<T>(path);
   }
 
-  void set<T extends Document>(T doc, {Duration debounce}) async {
-    _state.update<T>(doc, doUpdateAggregate: true);
-    final reference = doc.reference;
-    EasyDebounce.debounce(
-      reference.path,
-      debounce,
-      () async {
-        final oldDoc = await get(doc, true);
-        if (oldDoc == null) {
-          return create(doc);
-        }
-        if (_.shouldDelete(doc)) {
-          return delete(oldDoc);
-        }
-        return _update(oldDoc, doc);
-      },
-    );
+  void set(Document doc, {Duration debounce}) {
+    final key = doc?.reference?.path;
+    final oldDoc = _state.update(doc, doUpdateAggregate: true);
+    _debouncedDocs.putIfAbsent(key, () => oldDoc);
+    EasyDebounce.debounce(key, debounce, () => _set(key, doc));
   }
 
+  Future<void> _set(String key, Document doc) async {
+    final oldDoc = _debouncedDocs.remove(key);
+    if (oldDoc == null) return create(doc);
+    if (_shouldDelete(doc)) return delete(oldDoc);
+    return _update(oldDoc, doc);
+  }
+
+  bool _shouldDelete(Document doc) => _.mapOf(doc).values.any((field) =>
+      ((field is IntField && field.value == field.deleteOn) ||
+          (field is FloatField && field.value == field.deleteOn)));
+
   Future<T> create<T extends Document>(T doc) async {
+    _state.update(doc);
+
+    // handle special fields
     final colName = doc.colName;
     final ref = doc.reference ?? _firestore.collection(colName).doc();
-    Map<String, dynamic> newDocMap = Map<String, dynamic>();
-    final docMap = {
-      ..._.mapOf(doc),
-      ..._.defaultValueMapOf(doc),
-    };
-    for (final fieldName in docMap.keys) {
-      final field = docMap[fieldName];
-      if (field is DynamicLinkField) {
-        newDocMap[fieldName] = await _adapter.createDynamicLink(
-          colName,
-          ref.id,
-          field,
-        );
-      } else {
-        newDocMap[fieldName] = field;
-      }
-    }
-    final newDoc = _.docOfMap(newDocMap, colName);
-    if (newDoc.reference != null) {
-      _state.update<T>(newDoc);
-    }
-    await _adapter.create(ref, newDoc);
-    newDoc..reference = ref;
-    _state.update<T>(newDoc);
+    final newDocMap = await _handleSpecialFields(ref, doc);
+    final newDoc = _.docFromMap(newDocMap, ref);
+    _state.update(newDoc, doUpdateAggregate: true);
+
+    // POST doc
+    await _firebase.createDoc(ref, newDoc);
     return newDoc;
   }
 
-  Future<T> _update<T extends Document>(T oldDoc, T newDoc) async {
-    final mergedDoc = _.mergeDocs(oldDoc, newDoc);
-    _state.update<T>(mergedDoc);
-    await _adapter.update(oldDoc.reference, newDoc);
-    return mergedDoc;
+  Future<void> _update(Document oldDoc, Document doc) async {
+    _state.update(doc);
+
+    // handle special fields
+    final ref = doc.reference;
+    final newDocMap = await _handleSpecialFields(ref, doc);
+    final newDoc = _.docFromMap(newDocMap, ref);
+    _state.update(newDoc);
+
+    // PUT doc
+    await _firebase.updateDoc(ref, oldDoc, newDoc);
   }
 
-  Future<void> delete<T extends Document>(T oldDoc) async {
-    await _state.delete(oldDoc);
-    await _adapter.delete(oldDoc);
+  Future<void> delete(Document oldDoc) async {
+    _fetchedDocPaths.remove(oldDoc.reference.path);
+    _state.delete(oldDoc);
+    await _firebase.delete(oldDoc.reference);
   }
 
   Future<T> createIfAbsent<T extends Document>(T doc) async {
@@ -89,27 +83,80 @@ class _DocumentManager {
 
   Future<T> get<T extends Document>(T keyDoc, bool fromCache) async {
     final path = keyDoc.reference.path;
-    final onMemoryDoc = await streamWherePath<T>(
-      path,
-    ).first;
-    if (fromCache && _fetchedDocPaths.contains(path)) {
-      return onMemoryDoc;
-    }
-    final snapshot = await _adapter.get(keyDoc);
+    final onCacheDoc = await streamWherePath<T>(path).first;
+
+    // return if doc exists in cache
+    if (fromCache && _fetchedDocPaths.contains(path)) return onCacheDoc;
+
+    // GET doc
+    final snapshot = await _firebase.getDoc(keyDoc);
     _fetchedDocPaths.add(path);
-    if (snapshot == null) {
-      return null;
-    }
+
+    // return null if doc doesnt exists in database
+    if (!snapshot.exists) return null;
+
+    // update state
     final createdDoc = _.docFromSnapshot(snapshot, keyDoc.colName);
-    final T updatedDoc =
-        onMemoryDoc != null ? _.mergeDocs(onMemoryDoc, createdDoc) : createdDoc;
-    await _state.update<T>(updatedDoc);
-    return updatedDoc;
+    _state.update(createdDoc);
+
+    return createdDoc;
   }
 
-  Future<void> addFromList<T extends Document>(List<T> docs) async {
-    for (final doc in docs) {
-      await _state.update<T>(doc);
+  void addFromList(List<Document> docs) {
+    docs.forEach((doc) => _state.update(doc));
+  }
+
+  Future<Map<String, DocumentField>> _handleSpecialFields(
+    DocumentReference ref,
+    Document doc,
+  ) async {
+    final oldDocMap = _.mapOf(doc);
+    final newDocMap = Map<String, DocumentField>();
+    for (final fieldName in oldDocMap.keys) {
+      final field = oldDocMap[fieldName];
+      newDocMap[fieldName] = await _handleSpecialField(ref, fieldName, field);
     }
+    return newDocMap;
+  }
+
+  Future<T> _handleSpecialField<T extends DocumentField>(
+    DocumentReference ref,
+    String fieldName,
+    T field,
+  ) async {
+    // default field values on create
+    if (field.value == null) {
+      if (field is CountField) return CountField(0) as T;
+      if (field is SumField) return SumField(0) as T;
+      if (field is TimestampField && field.isServerTimestamp) {
+        return TimestampField(DateTime.now()) as T;
+      }
+      if (field is DynamicLinkField) {
+        final newUrl = await _firebase.createDynamicLink(ref, field);
+        return DynamicLinkField(
+          newUrl,
+          title: field.title,
+          description: field.description,
+          imageUrl: field.imageUrl,
+          isSuffixShort: field.isSuffixShort,
+        ) as T;
+      }
+    }
+    // upload image if image file was provided
+    if (field is ImageField && field.file != null) {
+      final snapshot = await _firebase.uploadImage(ref, fieldName, field);
+      final file = await field.file.readAsBytes();
+      final image = await decodeImageFromList(file);
+      final url = await snapshot.ref.getDownloadURL();
+      return ImageField(
+        url,
+        file: null,
+        height: image.height,
+        width: image.width,
+        fileSize: snapshot.storageMetadata.sizeBytes,
+        userId: field.userId,
+      ) as T;
+    }
+    return field;
   }
 }

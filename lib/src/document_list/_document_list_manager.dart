@@ -13,7 +13,6 @@ class _DocumentListManager {
   final _FlamestoreUtil _;
 
   Future<List<T>> get<T extends Document>(DocumentListKey<T> list) async {
-    final colName = _.colNameOfList(list);
     _createIfAbsent(list);
     final oldList = _state[list].value;
     final snapshots = await _db.get<T>(list, oldList.lastDoc);
@@ -25,6 +24,7 @@ class _DocumentListManager {
       final lastDoc = snapshots[snapshots.length - 1];
       _updateState(list, lastDoc: lastDoc, refs: toUpdateRefs);
     }
+    final colName = _.colNameOfList(list);
     return snapshots
         .map((snapshot) => _.docFromSnapshot(snapshot, colName))
         .cast<T>()
@@ -39,29 +39,30 @@ class _DocumentListManager {
   Future<List<T>> refresh<T extends Document>(DocumentListKey<T> list) async {
     _createIfAbsent(list);
     _state[list].add(_DocumentListState());
-    return get(list);
+    return get<T>(list);
   }
 
-  void addReference(DocumentReference ref, List<DocumentListKey> lists) {
-    for (final list in lists) {
+  void addRefToList(DocumentReference ref, List<DocumentListKey> lists) {
+    lists.forEach((list) {
       final oldRefs = _state[list].value.refs;
-      // avoid duplicate references in list
-      if (!oldRefs.map((e) => e.path).contains(ref.path)) {
-        final toUpdateRefs = [ref, ...oldRefs];
-        _updateState(list, refs: toUpdateRefs);
+      final isRefInList = oldRefs.map((e) => e.path).contains(ref.path);
+      if (!isRefInList) {
+        final newRefs = [ref, ...oldRefs];
+        _updateState(list, refs: newRefs);
       }
-    }
+    });
   }
 
-  void deleteReference(DocumentReference ref) {
-    for (final list in _state.keys) {
-      final refs = _state[list].value.refs..remove(ref);
-      _updateState(list, refs: refs);
-    }
+  void deleteRefFromList(DocumentReference ref) {
+    _state.keys.forEach((list) {
+      final oldRefs = _state[list].value.refs;
+      final newRefs = oldRefs..remove(ref);
+      _updateState(list, refs: newRefs);
+    });
   }
 
   void _createIfAbsent(DocumentListKey list) {
-    if (!_state.containsKey(list) || _state[list] == null) {
+    if (!_state.containsKey(list)) {
       _state[list] = BehaviorSubject.seeded(_DocumentListState());
     }
   }
@@ -73,13 +74,12 @@ class _DocumentListManager {
     bool hasMore,
   }) {
     _createIfAbsent(list);
-    final state = _state[list].value;
-    _state[list].add(
-      _DocumentListState(
-        refs: refs ?? state.refs,
-        lastDoc: lastDoc ?? state.lastDoc,
-        hasMore: hasMore ?? state.hasMore,
-      ),
+    final oldState = _state[list].value;
+    final newState = _DocumentListState(
+      refs: refs ?? oldState.refs,
+      lastDoc: lastDoc ?? oldState.lastDoc,
+      hasMore: hasMore ?? oldState.hasMore,
     );
+    _state[list].add(newState);
   }
 }

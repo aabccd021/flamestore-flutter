@@ -72,6 +72,24 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: currentUser != null
+            ? GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) {
+                      return DocumentBuilder<User>(
+                        keyDocument: currentUser,
+                        builder: (user) => UserPage(user),
+                      );
+                    },
+                  ),
+                ),
+                child: currentUser.image.url != null
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(currentUser.image.url))
+                    : Icon(Icons.account_circle_outlined),
+              )
+            : null,
         title: Text('Flamestore Demo'),
         actions: [
           currentUser == null
@@ -131,12 +149,11 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(await user.getIdToken() != null);
     final firebaseCurrentUser = FirebaseAuth.instance.currentUser;
     assert(user.uid == firebaseCurrentUser.uid);
-    final userDocument = await flamestore.createDocIfAbsent(
-      User(
-        uid: firebaseCurrentUser.uid,
-        userName: 'user' + Random().nextInt(100000).toString(),
-      ),
+    final defaultUserDoc = User(
+      uid: firebaseCurrentUser.uid,
+      userName: 'user' + Random().nextInt(100000).toString(),
     );
+    final userDocument = await flamestore.createDocIfAbsent(defaultUserDoc);
     setState(() => currentUser = userDocument);
   }
 }
@@ -190,7 +207,7 @@ class _TweetState extends State<TweetWidget> {
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () {
-                    Flamestore.instance.deleteDocument(widget.tweet);
+                    Flamestore.instance.deleteDoc(widget.tweet);
                   },
                 ),
               ],
@@ -233,7 +250,7 @@ class LikeButton extends StatelessWidget {
               onPressed: () {
                 flamestore.setDoc(
                   keyLike.copyWith(likeValue: (likeValue + 1) % 5),
-                  debounce: Duration(seconds: 5),
+                  debounce: Duration(seconds: 2),
                 );
               },
             ),
@@ -279,19 +296,121 @@ class _TweetFormState extends State<TweetForm> {
               decoration: InputDecoration(hintText: 'Type tweet here'),
             ),
           ),
-          RaisedButton(
-            onPressed: tweet != '' ? onSubmitPressed : null,
-            child: Text('Tweet'),
-          )
+          SubmitTweetButton(widget.user, tweet),
         ],
       ),
     );
   }
+}
 
-  void onSubmitPressed() {
-    widget._flamestore.createDoc(
-      Tweet(user: widget.user, tweetText: tweet),
-      appendOnLists: [TweetList()],
+class SubmitTweetButton extends StatefulWidget {
+  SubmitTweetButton(
+    this.user,
+    this.tweetText, {
+    Key key,
+  }) : super(key: key);
+  final User user;
+  final String tweetText;
+
+  @override
+  _SubmitTweetButtonState createState() => _SubmitTweetButtonState();
+}
+
+class _SubmitTweetButtonState extends State<SubmitTweetButton> {
+  bool isSubmitting = false;
+  @override
+  Widget build(BuildContext context) {
+    void onSubmitPressed() async {
+      setState(() => isSubmitting = true);
+      await Flamestore.instance.createDoc(
+        Tweet(user: widget.user, tweetText: widget.tweetText),
+        appendOnLists: [TweetList()],
+      );
+      setState(() => isSubmitting = false);
+    }
+
+    return RaisedButton(
+      onPressed: widget.user != null && widget.tweetText.isNotEmpty
+          ? onSubmitPressed
+          : null,
+      child: isSubmitting ? CircularProgressIndicator() : Text('Tweet'),
+    );
+  }
+}
+
+class UserPage extends StatefulWidget {
+  UserPage(this.user, {Key key}) : super(key: key);
+  final User user;
+
+  @override
+  _UserPage createState() => _UserPage();
+}
+
+class _UserPage extends State<UserPage> {
+  ImagePickerController _controller = ImagePickerController();
+  TextEditingController _userNameController =
+      TextEditingController(text: 'newUname');
+  TextEditingController _bioController = TextEditingController(text: '');
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _userNameController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ImagePickerBuilder(
+      controller: _controller,
+      builder: (image) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: Column(
+            children: [
+              Text("bio: ${widget?.user?.bio}"),
+              Text("userName: ${widget?.user?.userName}"),
+              image.hasImageFile
+                  ? ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: 300),
+                      child: Image.memory(image.bytes))
+                  : GestureDetector(
+                      onTap: () => _controller.pickImage(),
+                      child: Icon(Icons.account_circle_outlined),
+                    ),
+              if (image.hasImageFile)
+                ElevatedButton(
+                  onPressed: () {
+                    final newUser = widget.user.copyWith(image: image.file);
+                    Flamestore.instance.setDoc(newUser);
+                  },
+                  child: Text('submit'),
+                ),
+              TextField(
+                controller: _userNameController,
+                decoration: InputDecoration(labelText: 'username'),
+              ),
+              TextField(
+                controller: _bioController,
+                decoration: InputDecoration(labelText: 'bio'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final newUserName = _userNameController.text;
+                  final newBio = _bioController.text;
+                  final newUser = widget.user.copyWith(
+                    userName: newUserName.isNotEmpty ? newUserName : null,
+                    bio: newBio.isNotEmpty ? newBio : null,
+                  );
+                  Flamestore.instance.setDoc(newUser);
+                },
+                child: Text('update username'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

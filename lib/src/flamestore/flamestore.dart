@@ -11,20 +11,20 @@ class Flamestore {
     return _flamestore = _Flamestore(_FlamestoreUtil(projectConfig));
   }
 
+  // Handle Document List
   Future<void> getList<T extends Document>(DocumentListKey<T> list) {
-    return _flamestore.getList<T>(list);
+    return _flamestore.getList(list);
   }
 
-  ValueStream<DocumentListState> _streamOfList<T extends Document>(
-    DocumentListKey<T> list,
-  ) {
+  ValueStream<DocumentListState> _streamOfList(DocumentListKey list) {
     return _flamestore.streamOfList(list);
   }
 
-  Future<void> refreshList(DocumentListKey list) {
+  Future<void> refreshList<T extends Document>(DocumentListKey<T> list) {
     return _flamestore.refreshList(list);
   }
 
+  // Handle Document
   void setDoc<T extends Document>(T doc, {Duration debounce = Duration.zero}) {
     return _flamestore.setDoc(doc, debounce: debounce);
   }
@@ -44,7 +44,7 @@ class Flamestore {
     return _flamestore.createDocIfAbsent(doc);
   }
 
-  Future<void> deleteDocument<T extends Document>(T doc) {
+  Future<void> deleteDoc(Document doc) {
     return _flamestore.deleteDoc(doc);
   }
 

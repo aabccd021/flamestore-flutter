@@ -13,13 +13,11 @@ class _DocumentListFirestoreAdapter {
     DocumentSnapshot lastDoc,
   ) async {
     final colName = _.colNameOfList(list);
-
-    final col = _firestore.collection(colName);
-    Query query = list.query(col).limit(list.limit);
-    if (lastDoc != null) {
-      query = query.startAfterDocument(lastDoc);
-    }
-    final snapshot = await query.get();
+    final collection = _firestore.collection(colName);
+    final baseQuery = list.query(collection).limit(list.limit);
+    final paginatedQuery =
+        lastDoc != null ? baseQuery.startAfterDocument(lastDoc) : baseQuery;
+    final snapshot = await paginatedQuery.get();
     return snapshot.docs;
   }
 }

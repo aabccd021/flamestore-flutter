@@ -13,24 +13,22 @@ class _Flamestore {
 
   Future<void> getList<T extends Document>(DocumentListKey<T> list) async {
     final docs = await _listManager.get(list);
-    return _docManager.addFromList<T>(docs);
+    return _docManager.addFromList(docs);
   }
 
-  Future<void> refreshList<T extends Document>(DocumentListKey<T> list) async {
-    final docs = await _listManager.refresh<T>(list);
-    return _docManager.addFromList<T>(docs);
-  }
-
-  ValueStream<DocumentListState> streamOfList<T extends Document>(
-    DocumentListKey<T> list,
-  ) {
+  ValueStream<DocumentListState> streamOfList(DocumentListKey list) {
     return _listManager
         .streamOf(list)
         .map((state) => DocumentListState(state.hasMore, state.refs))
         .shareValue();
   }
 
-  void setDoc<T extends Document>(T doc, {Duration debounce = Duration.zero}) {
+  Future<void> refreshList<T extends Document>(DocumentListKey<T> list) async {
+    final docs = await _listManager.refresh(list);
+    return _docManager.addFromList(docs);
+  }
+
+  void setDoc(Document doc, {Duration debounce = Duration.zero}) {
     _docManager.set(doc, debounce: debounce);
   }
 
@@ -43,10 +41,7 @@ class _Flamestore {
     List<DocumentListKey<T>> appendOnLists,
   }) async {
     final newDoc = await _docManager.create(doc);
-    if (appendOnLists != null) {
-      final newDocRef = newDoc.reference;
-      _listManager.addReference(newDocRef, appendOnLists);
-    }
+    _listManager.addRefToList(newDoc.reference, appendOnLists ?? []);
     return newDoc;
   }
 
@@ -54,9 +49,9 @@ class _Flamestore {
     return _docManager.createIfAbsent(doc);
   }
 
-  Future<void> deleteDoc<T extends Document>(T doc) {
-    _listManager.deleteReference(doc.reference);
-    return _docManager.delete(doc);
+  Future<void> deleteDoc<T extends Document>(T doc) async {
+    _listManager.deleteRefFromList(doc.reference);
+    await _docManager.delete(doc);
   }
 
   ValueStream<T> docStreamWherePath<T extends Document>(String path) {

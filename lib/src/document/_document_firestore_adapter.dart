@@ -4,50 +4,58 @@ class _DocumentFirestoreAdapter {
   _DocumentFirestoreAdapter(
     this._, {
     FirebaseFirestore firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+    FirebaseStorage storage,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
+
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
   final _FlamestoreUtil _;
 
-  Future<DocumentSnapshot> get<T extends Document>(T doc) async {
+  Future<DocumentSnapshot> getDoc<T extends Document>(T doc) async {
     final snapshot = await doc.reference.get();
-    final data = snapshot?.data();
-    print('GET DOCUMENT ${doc.reference} ${data}');
-    if (data == null) {
-      return null;
-    }
+    print('GET DOCUMENT ${doc.reference} ${snapshot?.data()}');
     return snapshot;
   }
 
-  Future<void> create<T extends Document>(DocumentReference ref, T doc) async {
-    final data = _.dataMapOf(doc).map((key, value) => value is Map
-        ? MapEntry(key, value..removeWhere((key, _) => key != 'reference'))
-        : MapEntry(key, value))
-      ..removeWhere((key, __) => !_.creatableFields(doc).contains(key))
+  Future<void> createDoc(DocumentReference ref, Document doc) async {
+    final creatableFieldNames = _.creatableFields(doc);
+    final data = _.mapOf(doc).map(
+        (key, field) => MapEntry(key, field.firestoreValue))
+      ..removeWhere((fieldName, __) => !creatableFieldNames.contains(fieldName))
       ..removeNull();
     print('CREATE DOCUMENT $ref $data');
-    return ref..set(data, SetOptions(merge: true));
+    await ref.set(data, SetOptions(merge: true));
   }
 
-  Future<void> update<T extends Document>(
+  Future<void> updateDoc(
     DocumentReference ref,
-    T updatedData,
-  ) {
-    final data = _.dataMapOf(updatedData)..removeNull();
-    print('UPDATE DOCUMENT $ref $data');
-    return ref.set(data, SetOptions(merge: true));
+    Document oldDoc,
+    Document newDoc,
+  ) async {
+    final updatableFields = _.updatableFields(newDoc);
+    final oldDocMap = _.mapOf(oldDoc);
+    final updateMap = _.mapOf(newDoc)
+      ..removeWhere((fieldName, __) => !updatableFields.contains(fieldName))
+      ..removeWhere((fieldName, field) => oldDocMap[fieldName] == field);
+    final firestoreMap = updateMap
+        .map((key, field) => MapEntry(key, field.firestoreValue))
+          ..removeNull();
+    print('UPDATE DOCUMENT $ref $firestoreMap');
+    await ref.set(firestoreMap, SetOptions(merge: true));
   }
 
-  Future<void> delete<T extends Document>(T doc) {
-    print('DELETE DOCUMENT ${doc.reference}');
-    return doc.reference.delete();
+  Future<void> delete(DocumentReference ref) async {
+    print('DELETE DOCUMENT ${ref}');
+    await ref.delete();
   }
 
   Future<String> createDynamicLink(
-    String colName,
-    String id,
+    DocumentReference ref,
     DynamicLinkField field,
   ) async {
-    assert(_ != null && _.flamestoreConfig != null);
+    final colName = _.colNameOfRef(ref);
+    final docId = ref.id;
     final projectId = _firestore.app.options.projectId;
     final project = _.flamestoreConfig.projects[projectId];
     final domain = project.domain ?? '${projectId}.web.app';
@@ -55,7 +63,7 @@ class _DocumentFirestoreAdapter {
     final isSuffixShort = field.isSuffixShort ?? false;
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://$dynamicLinkDomain',
-      link: Uri.parse('https://$domain/$colName/$id'),
+      link: Uri.parse('https://$domain/$colName/$docId'),
       androidParameters: AndroidParameters(
         packageName: project.androidPackageName,
       ),
@@ -78,5 +86,20 @@ class _DocumentFirestoreAdapter {
     final shortUrl = dynamicUrl.shortUrl.toString();
     print('CREATED DYNAMIC LINK $shortUrl');
     return shortUrl;
+  }
+
+  Future<StorageTaskSnapshot> uploadImage(
+    DocumentReference ref,
+    String fieldName,
+    ImageField field,
+  ) async {
+    final docId = ref.id;
+    final colName = _.colNameOfRef(ref);
+    final fileName = '${field.userId}\_$docId.png';
+    final filePath = '$colName/$fieldName/raw/$fileName';
+    final snapshot =
+        await _storage.ref().child(filePath).putFile(field.file).onComplete;
+    print('UPLOADED IMAGE $filePath');
+    return snapshot;
   }
 }

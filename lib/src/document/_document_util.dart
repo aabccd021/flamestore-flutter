@@ -23,64 +23,47 @@ class _FlamestoreUtil {
   }
 
   Document docFromSnapshot(DocumentSnapshot snapshot, String type) {
-    assert(type != null);
     final def = defOf[type];
-    final doc = def.mapToDoc(snapshot.data());
-    doc.reference = snapshot.reference;
+    final map = {...snapshot.data(), 'reference': snapshot.reference};
+    final doc = def.mapToDoc(map);
     return doc;
   }
 
-  T mergeDocs<T extends Document>(T thisDoc, T otherDoc) {
-    final def = defOf[thisDoc.colName];
-    final util = def;
-    final doc = util.mapToDoc({
-      ...mapOf(thisDoc),
-      ...mapOf(otherDoc),
-    });
-    doc.reference = otherDoc.reference ?? thisDoc.reference;
-    return doc;
-  }
-
-  Map<String, dynamic> mapOf(Document document) {
-    return {
-      ...dataMapOf(document),
-      'reference': document.reference,
-    };
-  }
-
-  Map<String, dynamic> dataMapOf(Document document) {
+  Map<String, DocumentField> mapOf(Document document) {
     final def = defOf[document.colName];
-    return def.docToMap(document);
+    return def._docToMap(document);
   }
 
-  bool shouldDelete(Document document) {
-    final def = defOf[document.colName];
-    return def.docShouldBeDeleted(document);
-  }
-
-  Map<String, dynamic> defaultValueMapOf(Document document) {
-    final def = defOf[document.colName];
-    return def.defaultValueMap(document);
-  }
-
-  Document docOfMap(Map<String, dynamic> map, String type) {
-    assert(type != null);
-    final def = defOf[type];
-    return def.mapToDoc(map);
+  Document docFromMap(Map<String, DocumentField> map, DocumentReference ref) {
+    final colName = colNameOfRef(ref);
+    final def = defOf[colName];
+    final valueMap =
+        map.map((fieldName, field) => MapEntry(fieldName, field.value));
+    final newMap = {...valueMap, 'reference': ref};
+    return def.mapToDoc(newMap);
   }
 
   List<String> creatableFields(Document document) {
     final def = defOf[document.colName];
-    return def.creatableFields();
+    return def.creatableFields;
+  }
+
+  List<String> updatableFields(Document document) {
+    final def = defOf[document.colName];
+    return def.updatableFields;
   }
 
   List<Sum> sumsOf(Document document) {
     final def = defOf[document.colName];
-    return def.sums(document);
+    return def._sums(document);
   }
 
   List<Count> countsOf(Document document) {
     final def = defOf[document.colName];
-    return def.counts(document);
+    return def._counts(document);
+  }
+
+  String colNameOfRef(DocumentReference ref) {
+    return ref.path.split("/")[0];
   }
 }

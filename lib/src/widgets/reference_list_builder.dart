@@ -32,10 +32,9 @@ class _ListViewBuilderState<T extends Document>
     return StreamBuilder<DocumentListState>(
       stream: widget._flamestore._streamOfList(widget.documentListKey),
       builder: (_, snapshot) {
-        if (snapshot.hasData) {
-          return widget.builder(snapshot.data.docs, snapshot.data.hasMore);
-        }
-        return widget.onEmptyWidget ?? Container();
+        return snapshot.hasData
+            ? widget.builder(snapshot.data.docs, snapshot.data.hasMore)
+            : widget.onEmptyWidget ?? Container();
       },
     );
   }

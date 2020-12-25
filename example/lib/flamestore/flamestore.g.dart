@@ -1,277 +1,238 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flamestore/flamestore.dart';
 import 'package:flutter/widgets.dart';
+
+class _UserImage {
+  String url;
+  int width;
+  int height;
+
+  _UserImage._fromMap(Map<String, dynamic> map) {
+    if (map != null) {
+      url = map['url'];
+      width = map['width'];
+      height = map['height'];
+    }
+  }
+}
 
 class User extends Document {
   User({
     @required this.userName,
     this.bio,
     @required this.uid,
-  });
-  User._({
-    this.userName,
-    this.bio,
-    this.tweetsCount,
-    this.uid,
-  });
-  final String userName;
-  final String bio;
-  int tweetsCount;
-  final String uid;
+    File image,
+  })  : tweetsCount = 0,
+        _image = image,
+        image = null,
+        super(null);
+
+  User._fromMap(Map<String, dynamic> data)
+      : userName = StringField.fromMap(data['userName']).value,
+        bio = StringField.fromMap(data['bio']).value,
+        tweetsCount = CountField.fromMap(data['tweetsCount']).value,
+        uid = StringField.fromMap(data['uid']).value,
+        image = _UserImage._fromMap(data['image']),
+        _image = null,
+        super(data['reference']);
+
+  User._(
+    this._image, {
+    @required this.userName,
+    @required this.bio,
+    @required this.tweetsCount,
+    @required this.uid,
+    @required this.image,
+    @required DocumentReference reference,
+  }) : super(reference);
+
   User copyWith({
     String userName,
     String bio,
-    String uid,
+    File image,
   }) {
     return User._(
+      image ?? this._image,
       userName: userName ?? this.userName,
       bio: bio ?? this.bio,
-      uid: uid ?? this.uid,
+      tweetsCount: this.tweetsCount,
+      uid: this.uid,
+      image: this.image,
+      reference: this.reference,
     );
   }
+
+  final String userName;
+  final String bio;
+  final int tweetsCount;
+  final String uid;
+  final File _image;
+  final _UserImage image;
 
   @override
   String get colName => "users";
 
   @override
-  List<String> get keys => [uid];
+  List<String> get keys {
+    return [
+      uid,
+    ];
+  }
 }
 
 final userDefinition = DocumentDefinition<User>(
-  mapToDoc: (data) => User._(
-    userName: data['userName'],
-    bio: data['bio'],
-    tweetsCount: data['tweetsCount'],
-    uid: data['uid'],
-  ),
-  defaultValueMap: (doc) {
-    final userDoc = doc as User;
-    return {
-      'tweetsCount': 0,
-    };
-  },
+  mapToDoc: (data) => User._fromMap(data),
   docToMap: (doc) {
-    final userDoc = doc as User;
     return {
-      'userName': userDoc.userName,
-      'bio': userDoc.bio,
-      'tweetsCount': userDoc.tweetsCount,
-      'uid': userDoc.uid,
+      'userName': StringField(doc.userName),
+      'bio': StringField(doc.bio),
+      'tweetsCount': CountField(doc.tweetsCount),
+      'uid': StringField(doc.uid),
+      'image': ImageField(
+        doc?.image?.url,
+        file: doc._image,
+        userId: doc.uid,
+      ),
     };
   },
-  creatableFields: () => [
+  creatableFields: [
     'userName',
     'bio',
     'uid',
   ],
-  sums: (doc) {
-    final userDoc = doc as User;
-    return [];
-  },
-  counts: (doc) {
-    final userDoc = doc as User;
-    return [];
-  },
-  docShouldBeDeleted: (doc) {
-    final userDoc = doc as User;
-    return false;
-  },
+  updatableFields: [
+    'userName',
+    'bio',
+  ],
 );
 
-class _TweetUser {
-  _TweetUser({
-    @required this.reference,
-    @required this.userName,
-  });
+class _TweetUser extends ReferenceField {
+  _TweetUser(DocumentReference reference, {@required this.userName})
+      : super(
+          reference,
+          fields: {
+            'userName': userName,
+          },
+        );
+  _TweetUser._fromUser(User user)
+      : userName = user.userName,
+        super(
+          user.reference,
+          fields: {
+            'userName': user.userName,
+          },
+        );
+  _TweetUser._fromMap(Map<String, dynamic> map)
+      : userName = map['userName'],
+        super.fromMap(map);
 
-  _TweetUser.fromUser({
-    @required User user,
-  })  : reference = user.reference,
-        userName = user.userName;
-
-  _TweetUser.fromMap(
-    Map<String, dynamic> map,
-  )   : reference = map['reference'],
-        userName = map['userName'];
-
-  final DocumentReference reference;
   final String userName;
-
-  Map<String, dynamic> toDataMap() {
-    return {
-      'reference': reference,
-      'userName': userName,
-    };
-  }
-
-  _TweetUser copyWith({
-    DocumentReference reference,
-    String userName,
-  }) {
-    return _TweetUser(
-      reference: reference ?? this.reference,
-      userName: userName ?? this.userName,
-    );
-  }
 }
 
 class Tweet extends Document {
   Tweet({
     @required User user,
     @required this.tweetText,
-    this.dynamicLink,
-  }) : user = _TweetUser.fromUser(user: user);
+  })  : user = _TweetUser._fromUser(user),
+        likesSum = null,
+        creationTime = null,
+        dynamicLink = null,
+        hotness = null,
+        super(null);
+  Tweet._fromMap(Map<String, dynamic> data)
+      : user = _TweetUser._fromMap(data['user']),
+        tweetText = StringField.fromMap(data['tweetText']).value,
+        likesSum = SumField.fromMap(data['likesSum']).value,
+        creationTime = TimestampField.fromMap(data['creationTime']).value,
+        hotness = FloatField.fromMap(data['hotness']).value,
+        dynamicLink = DynamicLinkField.fromMap(data['dynamicLink']).value,
+        super(data['reference']);
   Tweet._({
-    this.user,
-    this.tweetText,
-    this.likesSum,
-    this.creationTime,
-    this.hotness,
-    this.dynamicLink,
-  });
-  final _TweetUser user;
-  final String tweetText;
-  int likesSum;
-  DateTime creationTime;
-  double hotness;
-  final String dynamicLink;
+    @required this.user,
+    @required this.tweetText,
+    @required this.likesSum,
+    @required this.creationTime,
+    @required this.hotness,
+    @required this.dynamicLink,
+    @required DocumentReference reference,
+  }) : super(reference);
   Tweet copyWith({
-    User user,
     String tweetText,
-    String dynamicLink,
   }) {
     return Tweet._(
-      user: user != null ? _TweetUser.fromUser(user: user) : this.user,
       tweetText: tweetText ?? this.tweetText,
-      dynamicLink: dynamicLink ?? this.dynamicLink,
+      user: this.user,
+      likesSum: this.likesSum,
+      creationTime: this.creationTime,
+      hotness: this.hotness,
+      dynamicLink: this.dynamicLink,
+      reference: this.reference,
     );
   }
 
-  @override
-  String get colName => "tweets";
+  final _TweetUser user;
+  final String tweetText;
+  final double likesSum;
+  final DateTime creationTime;
+  final double hotness;
+  final String dynamicLink;
 
   @override
-  List<String> get keys => [];
+  String get colName => "tweets";
 }
 
 final tweetDefinition = DocumentDefinition<Tweet>(
-  mapToDoc: (data) => Tweet._(
-    user: _TweetUser.fromMap(data['user']),
-    tweetText: data['tweetText'],
-    likesSum: data['likesSum'],
-    creationTime: data['creationTime'] is DateTime
-        ? data['creationTime']
-        : data['creationTime']?.toDate(),
-    hotness: data['hotness']?.toDouble(),
-    dynamicLink: data['dynamicLink'],
-  ),
-  defaultValueMap: (doc) {
-    final tweetDoc = doc as Tweet;
+  mapToDoc: (data) => Tweet._fromMap(data),
+  docToMap: (doc) {
     return {
-      'likesSum': 0,
-      'creationTime': DateTime.now(),
+      'user': doc.user,
+      'tweetText': StringField(doc.tweetText),
+      'likesSum': SumField(doc.likesSum?.toDouble()),
+      'creationTime': TimestampField(
+        doc.creationTime,
+        isServerTimestamp: true,
+      ),
+      'hotness': FloatField(doc.hotness),
       'dynamicLink': DynamicLinkField(
-        title: tweetDoc.tweetText,
+        doc.dynamicLink,
+        title: doc.tweetText,
         description: "tweet description",
         isSuffixShort: true,
-      ),
+      )
     };
   },
-  docToMap: (doc) {
-    final tweetDoc = doc as Tweet;
-    return {
-      'user': tweetDoc.user.toDataMap(),
-      'tweetText': tweetDoc.tweetText,
-      'likesSum': tweetDoc.likesSum,
-      'creationTime': tweetDoc.creationTime,
-      'hotness': tweetDoc.hotness,
-      'dynamicLink': tweetDoc.dynamicLink,
-    };
-  },
-  creatableFields: () => [
+  creatableFields: [
     'user',
     'tweetText',
     'dynamicLink',
   ],
-  sums: (doc) {
-    final tweetDoc = doc as Tweet;
-    return [];
-  },
+  updatableFields: [
+    'tweetText',
+  ],
   counts: (doc) {
-    final tweetDoc = doc as Tweet;
     return [
       Count(
         countDocCol: 'users',
-        countDocRef: tweetDoc.user.reference,
-        countField: 'tweetsCount',
+        ref: doc.user.reference,
+        fieldName: 'tweetsCount',
       ),
     ];
   },
-  docShouldBeDeleted: (doc) {
-    final tweetDoc = doc as Tweet;
-    return false;
-  },
 );
 
-class _LikeTweet {
-  _LikeTweet({
-    @required this.reference,
-  });
-
-  _LikeTweet.fromTweet({
-    @required Tweet tweet,
-  }) : reference = tweet.reference;
-
-  _LikeTweet.fromMap(
-    Map<String, dynamic> map,
-  ) : reference = map['reference'];
-
-  final DocumentReference reference;
-
-  Map<String, dynamic> toDataMap() {
-    return {
-      'reference': reference,
-    };
-  }
-
-  _LikeTweet copyWith({
-    DocumentReference reference,
-  }) {
-    return _LikeTweet(
-      reference: reference ?? this.reference,
-    );
-  }
+class _LikeTweet extends ReferenceField {
+  _LikeTweet(DocumentReference reference) : super(reference);
+  _LikeTweet._fromTweet(Tweet user) : super(user.reference);
+  _LikeTweet._fromMap(Map<String, dynamic> map) : super(map['reference']);
 }
 
-class _LikeUser {
-  _LikeUser({
-    @required this.reference,
-  });
-
-  _LikeUser.fromUser({
-    @required User user,
-  }) : reference = user.reference;
-
-  _LikeUser.fromMap(
-    Map<String, dynamic> map,
-  ) : reference = map['reference'];
-
-  final DocumentReference reference;
-
-  Map<String, dynamic> toDataMap() {
-    return {
-      'reference': reference,
-    };
-  }
-
-  _LikeUser copyWith({
-    DocumentReference reference,
-  }) {
-    return _LikeUser(
-      reference: reference ?? this.reference,
-    );
-  }
+class _LikeUser extends ReferenceField {
+  _LikeUser(DocumentReference reference) : super(reference);
+  _LikeUser._fromUser(User user) : super(user.reference);
+  _LikeUser._fromMap(Map<String, dynamic> map) : super(map['reference']);
 }
 
 class Like extends Document {
@@ -279,79 +240,72 @@ class Like extends Document {
     @required this.likeValue,
     @required Tweet tweet,
     @required User user,
-  })  : tweet = _LikeTweet.fromTweet(tweet: tweet),
-        user = _LikeUser.fromUser(user: user);
+  })  : tweet = _LikeTweet._fromTweet(tweet),
+        user = _LikeUser._fromUser(user),
+        super(null);
+  Like._fromMap(Map<String, dynamic> data)
+      : likeValue = IntField(data['likeValue']).value,
+        tweet = _LikeTweet._fromMap(data['tweet']),
+        user = _LikeUser._fromMap(data['user']),
+        super(data['reference']);
   Like._({
-    this.likeValue,
-    this.tweet,
-    this.user,
-  });
-  final int likeValue;
-  final _LikeTweet tweet;
-  final _LikeUser user;
+    @required this.likeValue,
+    @required this.tweet,
+    @required this.user,
+    @required DocumentReference reference,
+  }) : super(reference);
   Like copyWith({
     int likeValue,
-    Tweet tweet,
-    User user,
   }) {
     return Like._(
       likeValue: likeValue ?? this.likeValue,
-      tweet: tweet != null ? _LikeTweet.fromTweet(tweet: tweet) : this.tweet,
-      user: user != null ? _LikeUser.fromUser(user: user) : this.user,
+      tweet: this.tweet,
+      user: this.user,
+      reference: reference,
     );
   }
+
+  final int likeValue;
+  final _LikeTweet tweet;
+  final _LikeUser user;
 
   @override
   String get colName => "likes";
 
   @override
-  List<String> get keys => [
-        user.reference?.id,
-        tweet.reference?.id,
-      ];
+  List<String> get keys {
+    return [
+      user.reference?.id,
+      tweet.reference?.id,
+    ];
+  }
 }
 
 final likeDefinition = DocumentDefinition<Like>(
-  mapToDoc: (data) => Like._(
-    likeValue: data['likeValue'],
-    tweet: _LikeTweet.fromMap(data['tweet']),
-    user: _LikeUser.fromMap(data['user']),
-  ),
-  defaultValueMap: (doc) {
-    final likeDoc = doc as Like;
-    return {};
-  },
+  mapToDoc: (data) => Like._fromMap(data),
   docToMap: (doc) {
-    final likeDoc = doc as Like;
     return {
-      'likeValue': likeDoc.likeValue,
-      'tweet': likeDoc.tweet.toDataMap(),
-      'user': likeDoc.user.toDataMap(),
+      'likeValue': IntField(doc.likeValue, deleteOn: 0),
+      'tweet': doc.tweet,
+      'user': doc.user,
     };
   },
-  creatableFields: () => [
+  creatableFields: [
     'likeValue',
     'tweet',
     'user',
   ],
+  updatableFields: [
+    'likeValue',
+  ],
   sums: (doc) {
-    final likeDoc = doc as Like;
     return [
       Sum(
         field: 'likeValue',
-        sumDocCol: 'tweets',
-        sumDocRef: likeDoc.tweet.reference,
-        sumField: 'likesSum',
+        ref: doc.tweet.reference,
+        fieldName: 'likesSum',
       ),
     ];
-  },
-  counts: (doc) {
-    final likeDoc = doc as Like;
-    return [];
-  },
-  docShouldBeDeleted: (doc) {
-    final likeDoc = doc as Like;
-    return likeDoc.likeValue == 0;
   },
 );
 
