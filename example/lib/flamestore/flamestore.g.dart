@@ -132,15 +132,32 @@ class _TweetUser extends ReferenceField {
   final String userName;
 }
 
+class _TweetImage {
+  String url;
+  int width;
+  int height;
+
+  _TweetImage._fromMap(Map<String, dynamic> map) {
+    if (map != null) {
+      url = map['url'];
+      width = map['width'];
+      height = map['height'];
+    }
+  }
+}
+
 class Tweet extends Document {
   Tweet({
     @required User user,
     @required this.tweetText,
+    File image,
   })  : user = _TweetUser._fromUser(user),
         likesSum = null,
         creationTime = null,
         dynamicLink = null,
         hotness = null,
+        _image = image,
+        image = null,
         super(null);
   Tweet._fromMap(Map<String, dynamic> data)
       : user = _TweetUser._fromMap(data['user']),
@@ -149,26 +166,33 @@ class Tweet extends Document {
         creationTime = TimestampField.fromMap(data['creationTime']).value,
         hotness = FloatField.fromMap(data['hotness']).value,
         dynamicLink = DynamicLinkField.fromMap(data['dynamicLink']).value,
+        image = _TweetImage._fromMap(data['image']),
+        _image = null,
         super(data['reference']);
-  Tweet._({
+  Tweet._(
+    this._image, {
     @required this.user,
     @required this.tweetText,
     @required this.likesSum,
     @required this.creationTime,
     @required this.hotness,
     @required this.dynamicLink,
+    @required this.image,
     @required DocumentReference reference,
   }) : super(reference);
   Tweet copyWith({
     String tweetText,
+    File image,
   }) {
     return Tweet._(
+      image ?? this._image,
       tweetText: tweetText ?? this.tweetText,
       user: this.user,
       likesSum: this.likesSum,
       creationTime: this.creationTime,
       hotness: this.hotness,
       dynamicLink: this.dynamicLink,
+      image: this.image,
       reference: this.reference,
     );
   }
@@ -179,6 +203,8 @@ class Tweet extends Document {
   final DateTime creationTime;
   final double hotness;
   final String dynamicLink;
+  final File _image;
+  final _TweetImage image;
 
   @override
   String get colName => "tweets";
@@ -201,7 +227,12 @@ final tweetDefinition = DocumentDefinition<Tweet>(
         title: doc.tweetText,
         description: "tweet description",
         isSuffixShort: true,
-      )
+      ),
+      'image': ImageField(
+        doc?.image?.url,
+        file: doc._image,
+        userId: doc.user.reference.id,
+      ),
     };
   },
   creatableFields: [

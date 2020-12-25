@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -195,6 +196,7 @@ class _TweetState extends State<TweetWidget> {
           Text('tweetText: ${tweet?.tweetText}'),
           Text('likes: ${tweet?.likesSum}'),
           Text('creationTime: ${tweet?.creationTime}'),
+          if (tweet.image.url != null) Image.network(tweet.image.url),
           if (tweet?.dynamicLink != null)
             ElevatedButton(
               child: Text('OPEN'),
@@ -276,29 +278,55 @@ class TweetForm extends StatefulWidget {
 }
 
 class _TweetFormState extends State<TweetForm> {
+  ImagePickerController _controller = ImagePickerController();
   @override
   void initState() {
     flamestore = widget._flamestore;
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Flamestore flamestore;
   String tweet = '';
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              onChanged: (text) => setState(() => tweet = text),
-              decoration: InputDecoration(hintText: 'Type tweet here'),
-            ),
+    return ImagePickerBuilder(
+      controller: _controller,
+      builder: (snapshot) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (text) => setState(() => tweet = text),
+                      decoration: InputDecoration(hintText: 'Type tweet here'),
+                    ),
+                  ),
+                  SubmitTweetButton(
+                    widget.user,
+                    tweet,
+                    image: snapshot.file,
+                  ),
+                ],
+              ),
+              snapshot.hasImageFile
+                  ? Image.memory(snapshot.bytes)
+                  : RaisedButton(
+                      child: Text('Pick Image'),
+                      onPressed: _controller.pickImage,
+                    )
+            ],
           ),
-          SubmitTweetButton(widget.user, tweet),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -307,10 +335,12 @@ class SubmitTweetButton extends StatefulWidget {
   SubmitTweetButton(
     this.user,
     this.tweetText, {
+    this.image,
     Key key,
   }) : super(key: key);
   final User user;
   final String tweetText;
+  final File image;
 
   @override
   _SubmitTweetButtonState createState() => _SubmitTweetButtonState();
@@ -323,7 +353,11 @@ class _SubmitTweetButtonState extends State<SubmitTweetButton> {
     void onSubmitPressed() async {
       setState(() => isSubmitting = true);
       await Flamestore.instance.createDoc(
-        Tweet(user: widget.user, tweetText: widget.tweetText),
+        Tweet(
+          user: widget.user,
+          tweetText: widget.tweetText,
+          image: widget.image,
+        ),
         appendOnLists: [TweetList()],
       );
       setState(() => isSubmitting = false);
