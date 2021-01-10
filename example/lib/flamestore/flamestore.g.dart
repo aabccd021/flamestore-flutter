@@ -43,7 +43,7 @@ class User extends Document {
   final int tweetsCount;
   final String uid;
   @override
-  String get colName => "users";
+  String get colName => 'users';
   @override
   List<String> get keys {
     return [
@@ -168,7 +168,7 @@ class Tweet extends Document {
   final _TweetImage image;
   final String dynamicLink;
   @override
-  String get colName => "tweets";
+  String get colName => 'tweets';
 }
 
 final TweetDefinition = DocumentDefinition<Tweet>(
@@ -191,7 +191,7 @@ final TweetDefinition = DocumentDefinition<Tweet>(
       'dynamicLink': DynamicLinkField(
         doc.dynamicLink,
         title: doc.tweetText,
-        description: "tweet description",
+        description: 'tweet description',
         isSuffixShort: true,
       ),
     };
@@ -252,7 +252,7 @@ class Like extends Document {
   final _LikeTweet tweet;
   final _LikeUser user;
   @override
-  String get colName => "likes";
+  String get colName => 'likes';
   @override
   List<String> get keys {
     return [
