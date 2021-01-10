@@ -85,10 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                   ),
                 ),
-                child: currentUser.image.url != null
-                    ? CircleAvatar(
-                        backgroundImage: NetworkImage(currentUser.image.url))
-                    : Icon(Icons.account_circle_outlined),
+                child: Icon(Icons.account_circle_outlined),
               )
             : null,
         title: Text('Flamestore Demo'),
@@ -192,7 +189,7 @@ class _TweetState extends State<TweetWidget> {
     return Card(
       child: Column(
         children: [
-          Text('userName: ${tweet?.user?.userName}'),
+          Text('userName: ${tweet?.owner?.userName}'),
           Text('tweetText: ${tweet?.tweetText}'),
           Text('likes: ${tweet?.likesSum}'),
           Text('creationTime: ${tweet?.creationTime}'),
@@ -354,7 +351,7 @@ class _SubmitTweetButtonState extends State<SubmitTweetButton> {
       setState(() => isSubmitting = true);
       await Flamestore.instance.createDoc(
         Tweet(
-          user: widget.user,
+          owner: widget.user,
           tweetText: widget.tweetText,
           image: widget.image,
         ),
@@ -396,55 +393,38 @@ class _UserPage extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ImagePickerBuilder(
-      controller: _controller,
-      builder: (image) {
-        return Scaffold(
-          appBar: AppBar(),
-          body: Column(
-            children: [
-              Text("bio: ${widget?.user?.bio}"),
-              Text("userName: ${widget?.user?.userName}"),
-              image.hasImageFile
-                  ? ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: 300),
-                      child: Image.memory(image.bytes))
-                  : GestureDetector(
-                      onTap: () => _controller.pickImage(),
-                      child: Icon(Icons.account_circle_outlined),
-                    ),
-              if (image.hasImageFile)
-                ElevatedButton(
-                  onPressed: () {
-                    final newUser = widget.user.copyWith(image: image.file);
-                    Flamestore.instance.setDoc(newUser);
-                  },
-                  child: Text('submit'),
-                ),
-              TextField(
-                controller: _userNameController,
-                decoration: InputDecoration(labelText: 'username'),
-              ),
-              TextField(
-                controller: _bioController,
-                decoration: InputDecoration(labelText: 'bio'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final newUserName = _userNameController.text;
-                  final newBio = _bioController.text;
-                  final newUser = widget.user.copyWith(
-                    userName: newUserName.isNotEmpty ? newUserName : null,
-                    bio: newBio.isNotEmpty ? newBio : null,
-                  );
-                  Flamestore.instance.setDoc(newUser);
-                },
-                child: Text('update username'),
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(),
+      body: Column(
+        children: [
+          Text("bio: ${widget?.user?.bio}"),
+          Text("userName: ${widget?.user?.userName}"),
+          GestureDetector(
+            onTap: () => _controller.pickImage(),
+            child: Icon(Icons.account_circle_outlined),
           ),
-        );
-      },
+          TextField(
+            controller: _userNameController,
+            decoration: InputDecoration(labelText: 'username'),
+          ),
+          TextField(
+            controller: _bioController,
+            decoration: InputDecoration(labelText: 'bio'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUserName = _userNameController.text;
+              final newBio = _bioController.text;
+              final newUser = widget.user.copyWith(
+                userName: newUserName.isNotEmpty ? newUserName : null,
+                bio: newBio.isNotEmpty ? newBio : null,
+              );
+              Flamestore.instance.setDoc(newUser);
+            },
+            child: Text('update username'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -454,5 +434,5 @@ class TweetList extends DocumentListKey<Tweet> {
   List<Object> get props => [];
 
   @override
-  Query query(col) => col;
+  Query query(col) => col.orderBy('creationTime', descending: true);
 }
