@@ -71,12 +71,6 @@ final UserDefinition = DocumentDefinition<User>(
     'userName',
     'bio',
   ],
-  counts: (doc) {
-    return [];
-  },
-  sums: (doc) {
-    return [];
-  },
 );
 
 class _TweetOwner extends ReferenceField {
@@ -98,7 +92,6 @@ class _TweetOwner extends ReferenceField {
   _TweetOwner._fromMap(Map<String, dynamic> map)
       : userName = map['userName'],
         super.fromMap(map);
-
   final String userName;
 }
 
@@ -106,7 +99,6 @@ class _TweetImage {
   String url;
   int height;
   int width;
-
   _TweetImage._fromMap(Map<String, dynamic> map) {
     if (map != null) {
       url = map['url'];
@@ -212,12 +204,6 @@ final TweetDefinition = DocumentDefinition<Tweet>(
   updatableFields: [
     'tweetText',
   ],
-  counts: (doc) {
-    return [];
-  },
-  sums: (doc) {
-    return [];
-  },
 );
 
 class _LikeTweet extends ReferenceField {
@@ -293,13 +279,8 @@ final LikeDefinition = DocumentDefinition<Like>(
   updatableFields: [
     'likeValue',
   ],
-  counts: (doc) {
-    return [];
-  },
-  sums: (doc) {
-    return [];
-  },
 );
+
 final config = FlamestoreConfig(
   projects: {
     'flamestore': ProjectConfig(
@@ -318,6 +299,7 @@ final config = FlamestoreConfig(
     'likes': LikeDefinition,
   },
 );
+
 Map<String, Widget Function(Document)> dynamicLinkBuilders({
   @required Widget Function(Tweet tweet) tweetBuilder,
 }) {

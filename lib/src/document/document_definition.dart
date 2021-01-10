@@ -10,22 +10,22 @@ class DocumentDefinition<T extends Document> {
     return docToMap(document as T);
   }
 
-  List<Sum> Function(T document) sums;
-  List<Sum> _sums(Document document) {
-    return sums != null ? sums(document as T) : [];
-  }
+  // List<Sum> Function(T document) sums;
+  // List<Sum> _sums(Document document) {
+  //   return sums != null ? sums(document as T) : [];
+  // }
 
-  List<Count> Function(T document) counts;
-  List<Count> _counts(Document document) {
-    return counts != null ? counts(document as T) : [];
-  }
+  // List<Count> Function(T document) counts;
+  // List<Count> _counts(Document document) {
+  //   return counts != null ? counts(document as T) : [];
+  // }
 
   DocumentDefinition({
     @required this.mapToDoc,
     @required this.docToMap,
     @required this.creatableFields,
     @required this.updatableFields,
-    this.sums,
-    this.counts,
+    // this.sums,
+    // this.counts,
   });
 }

@@ -54,13 +54,11 @@ class _FlamestoreUtil {
   }
 
   List<Sum> sumsOf(Document document) {
-    final def = defOf[document.colName];
-    return def._sums(document);
+    return flamestoreConfig.sums[document.colName](document);
   }
 
   List<Count> countsOf(Document document) {
-    final def = defOf[document.colName];
-    return def._counts(document);
+    return flamestoreConfig.counts[document.colName](document);
   }
 
   String colNameOfRef(DocumentReference ref) {
