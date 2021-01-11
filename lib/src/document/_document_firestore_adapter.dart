@@ -58,8 +58,8 @@ class _DocumentFirestoreAdapter {
     final docId = ref.id;
     final projectId = _firestore.app.options.projectId;
     final project = _.flamestoreConfig.projects[projectId];
-    final domain = project.domain ?? '${projectId}.web.app';
-    final dynamicLinkDomain = project.dynamicLinkDomain ?? '${domain}/links';
+    final domain = project.domain ?? '$projectId.web.app';
+    final dynamicLinkDomain = project.dynamicLinkDomain ?? '$domain/links';
     final isSuffixShort = field.isSuffixShort ?? false;
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://$dynamicLinkDomain',

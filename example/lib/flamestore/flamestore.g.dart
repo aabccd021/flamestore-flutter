@@ -206,58 +206,58 @@ final TweetDefinition = DocumentDefinition<Tweet>(
   ],
 );
 
-class _LikeTweet extends ReferenceField {
-  _LikeTweet(DocumentReference reference) : super(reference);
-  _LikeTweet._fromTweet(Tweet tweet) : super(tweet.reference);
-  _LikeTweet._fromMap(Map<String, dynamic> map) : super.fromMap(map);
-}
-
 class _LikeUser extends ReferenceField {
   _LikeUser(DocumentReference reference) : super(reference);
   _LikeUser._fromUser(User user) : super(user.reference);
   _LikeUser._fromMap(Map<String, dynamic> map) : super.fromMap(map);
 }
 
+class _LikeTweet extends ReferenceField {
+  _LikeTweet(DocumentReference reference) : super(reference);
+  _LikeTweet._fromTweet(Tweet tweet) : super(tweet.reference);
+  _LikeTweet._fromMap(Map<String, dynamic> map) : super.fromMap(map);
+}
+
 class Like extends Document {
   Like({
+    @required User user,
     @required this.likeValue,
     @required Tweet tweet,
-    @required User user,
-  })  : tweet = _LikeTweet._fromTweet(tweet),
-        user = _LikeUser._fromUser(user),
+  })  : user = _LikeUser._fromUser(user),
+        tweet = _LikeTweet._fromTweet(tweet),
         super(null);
   Like._fromMap(Map<String, dynamic> data)
-      : likeValue = IntField.fromMap(data['likeValue']).value,
+      : user = _LikeUser._fromMap(data['user']),
+        likeValue = IntField.fromMap(data['likeValue']).value,
         tweet = _LikeTweet._fromMap(data['tweet']),
-        user = _LikeUser._fromMap(data['user']),
         super(data['reference']);
   Like._({
+    @required this.user,
     @required this.likeValue,
     @required this.tweet,
-    @required this.user,
     @required DocumentReference reference,
   }) : super(reference);
   Like copyWith({
     int likeValue,
   }) {
     return Like._(
+      user: this.user,
       likeValue: likeValue ?? this.likeValue,
       tweet: this.tweet,
-      user: this.user,
       reference: this.reference,
     );
   }
 
+  final _LikeUser user;
   final int likeValue;
   final _LikeTweet tweet;
-  final _LikeUser user;
   @override
   String get colName => 'likes';
   @override
   List<String> get keys {
     return [
-      tweet.reference?.id,
       user.reference?.id,
+      tweet.reference?.id,
     ];
   }
 }
@@ -266,15 +266,15 @@ final LikeDefinition = DocumentDefinition<Like>(
   mapToDoc: (data) => Like._fromMap(data),
   docToMap: (doc) {
     return {
+      'user': doc.user,
       'likeValue': IntField(doc.likeValue, deleteOn: 0),
       'tweet': doc.tweet,
-      'user': doc.user,
     };
   },
   creatableFields: [
+    'user',
     'likeValue',
     'tweet',
-    'user',
   ],
   updatableFields: [
     'likeValue',
